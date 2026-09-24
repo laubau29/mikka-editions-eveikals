@@ -267,7 +267,9 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     desc      one or two sentences
     contents  bullet list of exact files / sizes / formats
     =================================================================== */
- var loaded=false;
+ var loaded=false, failed=false;
+ /* Put Printful products into editions: 'pf-PRODUCTID':['edition-slug', ...]  (or just put the edition name in the Printful product name) */
+ var EDITION_MAP={ /* 'pf-475043752':['animal-people'] */ };
  var PRODUCTS=[
   {id:'cat-person-card',title:'Cat Person Card',dept:'cards',editions:['animal-people'],price:'€4.50',kind:'Digital download',art:['#C99D39','#AE4C35'],
    desc:'A dry little card for someone whose personality is mostly cat.',contents:['Print-ready PDF + 300 dpi JPG','A6 and 4 x 6 inch versions','Personal-use licence']},
@@ -354,11 +356,14 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    out=k==='all'?P('Shop the collection','<p>Every edition, across six product departments. Digital and physical formats are labelled on each listing.</p>'+grouped(PRODUCTS)+'<h3>Browse by department</h3>'+tiles())
     :P(PROD[k]||'Collection','<p>'+(PROD[k]||'This collection')+' across all nine editions. Each listing states contents, sizes, formats and licence.</p>'+grid(byDept(k))+'<h3>Other departments</h3>'+tiles());
   } else if(h.indexOf('editions/')===0){
-   var slug=h.slice(9),e=ED[slug];
-   out=e?P(e[0],'<p>'+e[1]+'</p><p>This edition appears across cards, stickers, prints, T-shirts, art assets and bundles. Edition names describe subject matter, not product format.</p>'+grouped(byEdition(slug))+'<h3>Browse by department</h3>'+tiles())
+   var parts=h.slice(9).split('/'),slug=parts[0],dep=parts[1],e=ED[slug];
+   var items=byEdition(slug),pick=(dep&&PROD[dep])?items.filter(function(x){return x.dept===dep;}):items;
+   var chips='<h3>Shop product</h3><div class="tiles">'+Object.keys(PROD).filter(function(k){return items.some(function(x){return x.dept===k;});}).map(function(k){return '<a href="#/editions/'+slug+'/'+k+'">'+PROD[k]+'</a>';}).join('')+'</div>'+(dep?'<p><a class="back" style="margin:0" href="#/editions/'+slug+'">Show everything in this edition</a></p>':'');
+   out=e?P(e[0],'<p>'+e[1]+'</p><p>This edition appears across cards, stickers, prints, T-shirts, art assets and bundles. Edition names describe subject matter, not product format.</p>'+(items.length?chips+grouped(pick):'<p class="empty">No products in this edition yet.</p>')+'<h3>Browse by department</h3>'+tiles())
     :P('Edition not found','<p>That edition does not exist yet.</p>');
   } else out=P('Page not found','<p>That page does not exist yet. Every link on this site leads somewhere — if you reached this, tell us at <a href="mailto:hello@mikkaeditions.com">hello@mikkaeditions.com</a>.</p>');
   main.innerHTML=out;window.scrollTo(0,0);
+  if(failed)main.insertAdjacentHTML('afterbegin','<div class="wrap"><p class="empty">Live products are temporarily unavailable. Please refresh in a moment.</p></div>');
   var sel=document.getElementById('variant');
   if(sel)sel.onchange=function(){
    var p=PRODUCTS.filter(function(x){return x.id===sel.dataset.pid;})[0],v=p.variants[sel.value],b=document.getElementById('add');
@@ -367,12 +372,15 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   };
  }
  window.addEventListener('hashchange',render);render();
- /* Live Printful products (served by /api/printful-products) */
- fetch('/api/printful-products').then(function(r){if(!r.ok){r.json().then(function(j){console.warn('Printful products failed:',j.error);}).catch(function(){});return [];}return r.json();}).then(function(list){
-  if(!list.length)return;
-  list.forEach(function(p){p.title=esc(p.title);p.editions=Object.keys(ED).filter(function(k){return p.title.toLowerCase().indexOf(ED[k][0].toLowerCase())>-1;});});
-  PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
- }).catch(function(){}).then(function(){loaded=true;render();});
+ /* Live Printful products (served by /api/printful-products), retried a few times */
+ function load(n){
+  fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
+   list.forEach(function(p){p.title=esc(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return p.title.toLowerCase().indexOf(ED[k][0].toLowerCase())>-1;}));});
+   PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
+   loaded=true;failed=false;render();
+  }).catch(function(){if(n>0)setTimeout(function(){load(n-1);},2500);else{loaded=true;failed=true;render();}});
+ }
+ load(3);
  document.addEventListener('snipcart.ready',function(){
   Snipcart.store.subscribe(function(){var n=Snipcart.store.getState().cart.items.count;document.getElementById('cnt').textContent=n||'';});
  });
