@@ -269,6 +269,19 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     =================================================================== */
  var loaded=false, failed=false;
  /* Put Printful products into editions: 'pf-PRODUCTID':['edition-slug', ...]  (or just put the edition name in the Printful product name) */
+ /* Words in a Printful product NAME that send it to an edition (edit freely) */
+ var EDITION_WORDS={
+  'animal-people':['animal','cat','kitten','dog','puppy','pet','fox','paw','purr','meow','woof','bunny','rabbit','bird','bear','wolf','owl','hedgehog','deer'],
+  'little-elsewhere':['travel','trip','journey','road','road trip','paris','adventure','explore','wander','map','passport','coast','island','elsewhere','suitcase','vacation','far north'],
+  'for-your-favorite-human':['love','heart','thanks','thank you','birthday','gift','friend','mum','mom','dad','wedding','anniversary','congratulations','valentine','favorite human','favourite human','hug','sorry'],
+  'solidarity':['solidarity','palestine','peace','freedom','justice','resist','together','kindness','humanity','ceasefire'],
+  'fog-season':['fog','mist','forest','woods','tree','mountain','rain','nature','outdoors','hike','hiking','camp','camping','mushroom','moss','lake','cloud','weather'],
+  'odd-little-things':['odd','weird','strange','surreal','absurd','quirky','object'],
+  'local-editions':['local','latvia','latvian','riga','baltic','food','culture','tradition','market'],
+  'calendar-editions':['christmas','xmas','easter','halloween','new year','spring','summer','autumn','winter','seasonal','calendar','advent','december'],
+  'at-work':['work','workwear','office','job','career','desk','meeting','boss','colleague','coworker','nurse','teacher','doctor','engineer','developer','chef','profession']
+ };
+ function wordRe(w){return new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:s|es)?\\b','i');}
  var EDITION_MAP={ /* 'pf-475043752':['animal-people'] */ };
  var PRODUCTS=[
   {id:'cat-person-card',title:'Cat Person Card',dept:'cards',editions:['animal-people'],price:'€4.50',kind:'Digital download',art:['#C99D39','#AE4C35'],
@@ -385,7 +398,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  /* Live Printful products (served by /api/printful-products), retried a few times */
  function load(n){
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
-   list.forEach(function(p){p.title=esc(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return p.title.toLowerCase().indexOf(ED[k][0].toLowerCase())>-1;}));});
+   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));});
    PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
    loaded=true;failed=false;render();
   }).catch(function(){if(n>0)setTimeout(function(){load(n-1);},2500);else{loaded=true;failed=true;render();}});
