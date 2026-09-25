@@ -48,6 +48,33 @@ async function catalogDescription(productId) {
   return desc;
 }
 
+// A real US-inch + EU-cm size chart, straight from Printful — only meaningful for
+// wearable garments (t-shirts, hoodies), never fetched for postcards/posters/stickers.
+// This one endpoint's exact shape isn't something we can test without a live account,
+// so it fails quietly (no chart shown) rather than breaking the page if the shape differs.
+const sizeCache = new Map();
+async function catalogSizeChart(productId) {
+  if (!productId) return null;
+  if (sizeCache.has(productId)) return sizeCache.get(productId);
+  let chart = null;
+  try {
+    const r = await pf('/products/' + productId + '/sizes');
+    const table = r && Array.isArray(r.size_tables) && r.size_tables[0];
+    const rowsIn = table && Array.isArray(table.size_tables) && table.size_tables;
+    if (rowsIn && rowsIn.length) {
+      const labels = ((rowsIn[0].measurements) || []).map((m) => m.type_label).filter(Boolean);
+      const rows = rowsIn.map((s) => ({
+        size: s.size,
+        cm: (s.measurements || []).map((m) => m.in_cm),
+        inch: (s.measurements || []).map((m) => m.in_inches),
+      }));
+      if (labels.length && rows.length) chart = { labels, rows };
+    }
+  } catch (e) { /* this product type has no size chart, or the shape differs — skip quietly */ }
+  sizeCache.set(productId, chart);
+  return chart;
+}
+
 module.exports = async (req, res) => {
   if (!TOKEN) return res.status(500).json({ error: 'Token missing: add PRINTFUL_API_TOKEN in Vercel and redeploy' });
   try {
@@ -72,14 +99,18 @@ module.exports = async (req, res) => {
       const cur = (d.sync_variants[0] || {}).currency || 'EUR';
       const min = Math.min(...vs.map((v) => v.price));
       const catalogId = d.sync_variants[0] && d.sync_variants[0].product && d.sync_variants[0].product.product_id;
+      const productDept = dept(sp.name);
+      const isGarment = productDept === 't-shirts';
       const care = await catalogDescription(catalogId); // material, fit, care instructions, straight from Printful
+      const sizeChart = isGarment ? await catalogSizeChart(catalogId) : null; // only fetched for wearables
       out.push({
-        id: 'pf-' + sp.id, title: sp.name, dept: dept(sp.name), editions: [], kind: 'Physical',
+        id: 'pf-' + sp.id, title: sp.name, dept: productDept, editions: [], kind: 'Physical',
         price: (vs.length > 1 ? 'From ' : '') + money(min, cur),
         thumb: sp.thumbnail_url, art: ['#58717A', '#252622'],
         desc: 'Produced to order and shipped by our print partner.',
         contents: ['Choose your size / option on this page', 'Produced and shipped by our print partner', 'Ships separately from digital items'],
         care,
+        sizeChart,
         variants: vs,
       });
     }
@@ -91,4 +122,3 @@ module.exports = async (req, res) => {
     res.status(502).json({ error: String(e.message || e) });
   }
 };
-
