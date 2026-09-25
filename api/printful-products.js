@@ -58,19 +58,19 @@ async function catalogSizeChart(productId) {
   if (sizeCache.has(productId)) return sizeCache.get(productId);
   let chart = null;
   try {
-    const r = await pf('/products/' + productId + '/sizes');
-    const table = r && Array.isArray(r.size_tables) && r.size_tables[0];
-    const rowsIn = table && Array.isArray(table.size_tables) && table.size_tables;
-    if (rowsIn && rowsIn.length) {
-      const labels = ((rowsIn[0].measurements) || []).map((m) => m.type_label).filter(Boolean);
-      const rows = rowsIn.map((s) => ({
-        size: s.size,
-        cm: (s.measurements || []).map((m) => m.in_cm),
-        inch: (s.measurements || []).map((m) => m.in_inches),
-      }));
-      if (labels.length && rows.length) chart = { labels, rows };
+    // Printful's own docs (developers.printful.com) confirm this endpoint and its three
+    // possible top-level sections, but don't publish the exact field names inside each
+    // one — so instead of guessing those field names (which failed silently last time),
+    // this keeps whichever sections Printful actually sends, as raw rows, and the page
+    // renders them generically: whatever keys are actually present become the columns.
+    const r = await pf('/products/' + productId + '/sizes?unit=inches,cm');
+    if (r && typeof r === 'object') {
+      const sections = ['measure_yourself', 'product_measure', 'international']
+        .filter((k) => r[k])
+        .map((k) => ({ key: k, data: r[k] }));
+      if (sections.length) chart = sections;
     }
-  } catch (e) { /* this product type has no size chart, or the shape differs — skip quietly */ }
+  } catch (e) { /* this product type has no size chart — skip quietly */ }
   sizeCache.set(productId, chart);
   return chart;
 }
