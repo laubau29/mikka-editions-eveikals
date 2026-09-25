@@ -147,6 +147,13 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 .size-guide-text{flex:1 1 220px;min-width:200px;font-size:13.5px}
 .size-guide-text p{margin:0 0 10px}
 @media(max-width:560px){.size-guide{justify-content:center;text-align:left}.size-guide svg{margin:0 auto}}
+.size-guide-toggle{margin:10px 0 4px;border:1px solid rgba(37,38,34,.25);border-radius:4px;padding:0}
+.size-guide-toggle summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;font-size:14px;color:var(--ink);display:flex;align-items:center;justify-content:space-between}
+.size-guide-toggle summary::-webkit-details-marker{display:none}
+.size-guide-toggle summary::after{content:'+';font-size:18px;line-height:1;color:var(--brick)}
+.size-guide-toggle[open] summary::after{content:'\2212'}
+.size-guide-toggle[open] summary{border-bottom:1px solid rgba(37,38,34,.18)}
+.size-guide-toggle .size-guide{padding:14px}
 
 /* Product gallery + zoom */
 .gallery{display:flex;flex-direction:column;gap:10px}
@@ -501,18 +508,20 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     '<td>'+r.waistIn+' in'+(r.waistCm?' / '+r.waistCm+' cm':'')+'</td>'+
     '<td>'+r.hipsIn+' in'+(r.hipsCm?' / '+r.hipsCm+' cm':'')+'</td></tr>';
   }).join('');
-  return '<div class="size-guide">'+
-   sizeGuideIllustrationSVG()+
-   '<div class="size-guide-text">'+
-    '<p><strong style="color:var(--brick)">A — Chest.</strong> Put one end of the tape measure on the fullest part of the chest and bring the tape around the back (under the armpits, over the shoulder blades) to where you started.</p>'+
-    '<p><strong style="color:var(--fjord)">B — Waist.</strong> Measure around the narrowest part of the waist, keeping the tape snug but not tight.</p>'+
-    '<p><strong style="color:var(--ochre)">C — Hips.</strong> Measure around the fullest part of the hips, roughly 20 cm / 8 in below the waist.</p>'+
+  return '<details class="size-guide-toggle"><summary>Size chart &amp; how to measure (US &amp; EU)</summary>'+
+   '<div class="size-guide">'+
+    sizeGuideIllustrationSVG()+
+    '<div class="size-guide-text">'+
+     '<p><strong style="color:var(--brick)">A — Chest.</strong> Put one end of the tape measure on the fullest part of the chest and bring the tape around the back (under the armpits, over the shoulder blades) to where you started.</p>'+
+     '<p><strong style="color:var(--fjord)">B — Waist.</strong> Measure around the narrowest part of the waist, keeping the tape snug but not tight.</p>'+
+     '<p><strong style="color:var(--ochre)">C — Hips.</strong> Measure around the fullest part of the hips, roughly 20 cm / 8 in below the waist.</p>'+
+    '</div>'+
+    '<table class="sizetable" style="flex-basis:100%">'+
+     '<tr><th>Size</th><th>Chest</th><th>Waist</th><th>Hips</th></tr>'+rows+
+    '</table>'+
+    '<p style="font-size:12px;opacity:.75;flex-basis:100%">6XL is only made to order in inches — Printful doesn\'t publish a centimetre size for it.</p>'+
    '</div>'+
-   '<table class="sizetable" style="flex-basis:100%">'+
-    '<tr><th>Size</th><th>Chest</th><th>Waist</th><th>Hips</th></tr>'+rows+
-   '</table>'+
-   '<p style="font-size:12px;opacity:.75;flex-basis:100%">6XL is only made to order in inches — Printful doesn\'t publish a centimetre size for it.</p>'+
-  '</div>';
+  '</details>';
  }
  function formatBlock(p,fmt){
   if(fmt==='digital'&&p.digital){
