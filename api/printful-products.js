@@ -21,6 +21,33 @@ async function pf(path, tries = 4) {
   }
 }
 
+// Printful keeps one real photo per print placement (front / back / sleeve, etc.) inside
+// each variant's own "files" list — this pulls out every one of those, so a product with
+// a front print AND a back print shows both instead of just one photo.
+function variantImages(v) {
+  const files = v.files || [];
+  const urls = files
+    .filter((f) => f.preview_url && /preview|mockup/i.test(f.type || ''))
+    .map((f) => f.preview_url);
+  return Array.from(new Set(urls)); // de-duplicate, keep order
+}
+
+// Printful's catalogue (not your store) already writes a material / fit / care description
+// for every base product type (e.g. "Unisex Heavy Cotton Tee"). One lookup per catalogue
+// product, cached, so ten colours of the same tee only cost one extra request.
+const catalogCache = new Map();
+async function catalogDescription(productId) {
+  if (!productId) return '';
+  if (catalogCache.has(productId)) return catalogCache.get(productId);
+  let desc = '';
+  try {
+    const r = await pf('/products/' + productId);
+    desc = (r && r.product && r.product.description) || '';
+  } catch (e) { /* leave blank rather than fail the whole page */ }
+  catalogCache.set(productId, desc);
+  return desc;
+}
+
 module.exports = async (req, res) => {
   if (!TOKEN) return res.status(500).json({ error: 'Token missing: add PRINTFUL_API_TOKEN in Vercel and redeploy' });
   try {
@@ -30,24 +57,32 @@ module.exports = async (req, res) => {
       const part = await Promise.all(list.slice(i, i + 4).map((p) => pf('/store/products/' + p.id).catch(() => null)));
       details.push(...part);
     }
-    const out = details.filter(Boolean).map((d) => {
+    const out = [];
+    for (const d of details.filter(Boolean)) {
       const sp = d.sync_product;
       const vs = d.sync_variants.filter((v) => !v.is_ignored).map((v) => {
-        const prev = (v.files || []).find((f) => f.type === 'preview');
-        return { id: v.id, name: v.name, price: Number(v.retail_price), label: money(v.retail_price, v.currency),
-                 image: (prev && prev.preview_url) || (v.product && v.product.image) || sp.thumbnail_url };
+        const images = variantImages(v);
+        return {
+          id: v.id, name: v.name, price: Number(v.retail_price), label: money(v.retail_price, v.currency),
+          image: images[0] || (v.product && v.product.image) || sp.thumbnail_url,
+          images: images.length ? images : undefined, // multiple photos → gallery + zoom on the product page
+        };
       });
+      if (!vs.length) continue;
       const cur = (d.sync_variants[0] || {}).currency || 'EUR';
-      const min = vs.length ? Math.min(...vs.map((v) => v.price)) : 0;
-      return {
+      const min = Math.min(...vs.map((v) => v.price));
+      const catalogId = d.sync_variants[0] && d.sync_variants[0].product && d.sync_variants[0].product.product_id;
+      const care = await catalogDescription(catalogId); // material, fit, care instructions, straight from Printful
+      out.push({
         id: 'pf-' + sp.id, title: sp.name, dept: dept(sp.name), editions: [], kind: 'Physical',
-        price: vs.length ? (vs.length > 1 ? 'From ' : '') + money(min, cur) : '',
+        price: (vs.length > 1 ? 'From ' : '') + money(min, cur),
         thumb: sp.thumbnail_url, art: ['#58717A', '#252622'],
         desc: 'Produced to order and shipped by our print partner.',
         contents: ['Choose your size / option on this page', 'Produced and shipped by our print partner', 'Ships separately from digital items'],
+        care,
         variants: vs,
-      };
-    }).filter((p) => p.variants.length);
+      });
+    }
     if (!out.length) throw new Error('No products returned (' + list.length + ' listed)');
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=86400');
     res.status(200).json(out);
@@ -56,3 +91,4 @@ module.exports = async (req, res) => {
     res.status(502).json({ error: String(e.message || e) });
   }
 };
+
