@@ -51,7 +51,7 @@ h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,6vw,58px);line-
 
 /* Shop by Edition */
 .editions{padding:72px 0 30px}
-.editions h2{font-family:var(--serif);font-weight:400;font-size:13px;letter-spacing:.24em;text-transform:uppercase;margin:0 0 34px}
+.editions h2{font-family:var(--serif);font-weight:400;font-size:13px;letter-spacing:.24em;text-transform:uppercase;margin:0 0 22px;padding-bottom:18px;border-bottom:1px solid rgba(37,38,34,.18)}
 .egrid{display:grid;grid-template-columns:repeat(2,1fr);gap:46px 44px}
 .ed{text-decoration:none;color:inherit;display:block}
 .frame{aspect-ratio:1.39/1;width:100%;overflow:hidden}
@@ -116,6 +116,8 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 @media(max-width:820px){
   .wrap{padding:0 20px}
   .pgrid{grid-template-columns:repeat(2,1fr)}
+  .pgrid .pcell{padding-top:30px}
+  .pgrid .pcell:nth-child(-n+2){padding-top:4px}
   .pgrid .pcell:nth-child(3n+2){border-left:0;border-right:0}
   .pgrid .pcell:nth-child(2n){border-left:1px solid rgba(242,233,216,.32)}
   .pgrid .pcell:nth-child(n+3){border-top:1px solid rgba(242,233,216,.32)}
@@ -125,9 +127,30 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
   .egrid{grid-template-columns:1fr;gap:34px}
   .bar{gap:12px}
   .icons{gap:18px}
+  .hero{padding-top:96px;padding-bottom:84px}
+  .band{padding-top:80px}
 }
 button.btn{border:0;cursor:pointer;font-family:inherit}
 select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 16px;font:inherit;background:var(--paper);color:var(--ink);border:1px solid var(--ink)}
+
+/* Product gallery + zoom */
+.gallery{display:flex;flex-direction:column;gap:10px}
+.gallery .frame{position:relative;cursor:zoom-in;background:#fff}
+.gallery .frame:after{content:"⤢ Tap to zoom";position:absolute;right:10px;bottom:10px;
+  background:rgba(37,38,34,.72);color:#F2E9D8;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;padding:5px 9px}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumbs button{width:56px;height:56px;padding:0;border:2px solid transparent;background:none;
+  cursor:pointer;overflow:hidden;flex-shrink:0}
+.thumbs button.active{border-color:var(--brick)}
+.thumbs img,.thumbs svg{width:100%;height:100%;object-fit:cover}
+.lightbox{position:fixed;inset:0;background:rgba(37,38,34,.94);display:none;
+  align-items:center;justify-content:center;z-index:200;padding:24px;
+  padding-top:calc(24px + env(safe-area-inset-top,0px))}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%;max-height:100%;object-fit:contain;touch-action:pinch-zoom}
+.lightbox .lb-close{position:absolute;top:calc(16px + env(safe-area-inset-top,0px));right:20px;
+  background:none;border:0;color:#F2E9D8;font-size:30px;line-height:1;cursor:pointer}
 .icons a{position:relative}
 .cnt{position:absolute;top:-7px;right:-11px;background:var(--brick);color:var(--paper);font-size:10px;line-height:16px;min-width:16px;text-align:center;border-radius:8px}
 .cnt:empty{display:none}
@@ -151,7 +174,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 
 <main id="main">
  <section class="wrap hero">
-  <p class="eyebrow">Cards · prints · stickers · wearable things</p>
+  <p class="eyebrow">Cards · posters · stickers · wearable things</p>
   <h1>Designs to send, print, stick and wear.</h1>
   <p class="support">Independent editions that move between humour, travel, animals, occasions and messages with meaning.</p>
   <a class="btn" href="?p=collections/all">Shop the collection</a>
@@ -238,6 +261,8 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  </div>
 </footer>
 
+<div class="lightbox" id="lightbox"><button class="lb-close" onclick="document.getElementById('lightbox').classList.remove('open')" aria-label="Close">&times;</button><img id="lightboxImg" alt=""></div>
+
 <div hidden id="snipcart" data-api-key="MmY5MmExMTEtNjIxNi00ZThiLTlkZjctYjUxNTA2YjNjYTA2NjM5MjU4NDgxMTUzMzU1MDIz" data-config-modal-style="side"></div>
 <script src="https://cdn.snipcart.com/themes/v3.4.0/default/snipcart.js" async></script>
 
@@ -314,6 +339,41 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   return '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><rect width="100" height="100" fill="'+c[0]+'"/><circle cx="42" cy="44" r="24" fill="'+c[1]+'"/><path d="M60 78c-8-4-8-18-1-26 8-8 22-6 24 3 2 10-6 22-15 25-3 1-6 0-8-2z" fill="#252622" opacity=".85"/></svg>';}
  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
  function pic(p){return p.thumb?'<img src="'+p.thumb+'" alt="'+p.title+'" style="width:100%;height:100%;object-fit:cover">':art(p.art,0,p.motif);}
+ /* ---- Product photo gallery + zoom ----
+    A product can carry several photos two ways:
+    - p.images: ['url1','url2',...]  → shown when no variant is picked yet
+    - p.variants[i].images: ['url1','url2',...] → shown once that variant (e.g. a colour) is picked
+    - p.variants[i].image: single url → used if that variant has only one photo
+    Printful gives you several mockup photos per variant — map them into
+    p.variants[i].images on the server side (in /api/printful-products) so this works automatically. */
+ function imgList(p,variant){
+  if(variant&&variant.images&&variant.images.length)return variant.images;
+  if(variant&&variant.image)return [variant.image];
+  if(p.images&&p.images.length)return p.images;
+  if(p.thumb)return [p.thumb];
+  return null;
+ }
+ function thumbHTML(list,activeIdx){
+  if(!list||list.length<2)return '';
+  return '<div class="thumbs">'+list.map(function(src,i){return '<button class="'+(i===activeIdx?'active':'')+'" onclick="mkSetImg('+i+')"><img src="'+src+'" alt=""></button>';}).join('')+'</div>';
+ }
+ function galleryHTML(p,variant){
+  var list=imgList(p,variant);
+  window.__mkImages=list;
+  var fallback=art(p.art,0,p.motif);
+  var main=list?'<img id="mainImg" src="'+list[0]+'" alt="'+esc(p.title)+'">':fallback;
+  return '<div class="gallery"><div class="frame" onclick="mkOpenZoom()">'+main+'</div>'+thumbHTML(list,0)+'</div>';
+ }
+ window.mkSetImg=function(i){
+  var list=window.__mkImages;if(!list)return;
+  var img=document.getElementById('mainImg');if(img)img.src=list[i];
+  document.querySelectorAll('.thumbs button').forEach(function(b,idx){b.classList.toggle('active',idx===i);});
+ };
+ window.mkOpenZoom=function(){
+  var img=document.getElementById('mainImg');if(!img)return;
+  document.getElementById('lightboxImg').src=img.src;
+  document.getElementById('lightbox').classList.add('open');
+ };
  function attrs(p,v){return 'data-item-id="pf-'+v.id+'" data-item-name="'+esc(v.name)+'" data-item-price="'+v.price+'" data-item-url="/api/snipcart?id=pf-'+v.id+'" data-item-image="'+(v.image||p.thumb||'')+'" data-item-description="'+p.title+'"';}
  function buy(p){
   if(!p.variants)return '<p><span class="soon">Coming soon</span></p>';
@@ -352,7 +412,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    if(p){
     var eds=p.editions.map(function(e){return '<a href="?p=editions/'+e+'">'+ED[e][0]+'</a>';}).join(', ');
     out='<section class="wrap page" style="max-width:1120px"><p class="crumb"><a href="/">Home</a> / <a href="?p=collections/'+p.dept+'">'+PROD[p.dept]+'</a> / '+p.title+'</p>'+
-     '<div class="prod"><div class="frame">'+pic(p)+'</div><div>'+
+     '<div class="prod">'+galleryHTML(p,p.variants?p.variants[0]:null)+'<div>'+
      '<span class="tag">'+p.kind+'</span><span class="tag">'+PROD[p.dept]+'</span>'+
      '<h1 style="margin-top:14px">'+p.title+'</h1><p class="price">'+p.price+'</p><p>'+p.desc+'</p>'+
      '<h3>What you get</h3><ul><li>'+p.contents.join('</li><li>')+'</li></ul>'+
@@ -381,6 +441,14 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    var p=PRODUCTS.filter(function(x){return x.id===sel.dataset.pid;})[0],v=p.variants[sel.value],b=document.getElementById('add');
    b.setAttribute('data-item-id','pf-'+v.id);b.setAttribute('data-item-name',v.name);b.setAttribute('data-item-price',v.price);
    b.setAttribute('data-item-url','/api/snipcart?id=pf-'+v.id);if(v.image)b.setAttribute('data-item-image',v.image);
+   /* also swap the visible photo + thumbnails to match the chosen variant */
+   var list=imgList(p,v);window.__mkImages=list;
+   var frame=document.querySelector('.gallery .frame');
+   if(frame)frame.innerHTML=list?'<img id="mainImg" src="'+list[0]+'" alt="'+esc(p.title)+'">':art(p.art,0,p.motif);
+   var thumbsWrap=document.querySelector('.gallery .thumbs'), newThumbs=thumbHTML(list,0);
+   if(thumbsWrap&&newThumbs)thumbsWrap.outerHTML=newThumbs;
+   else if(thumbsWrap)thumbsWrap.remove();
+   else if(newThumbs)document.querySelector('.gallery').insertAdjacentHTML('beforeend',newThumbs);
   };
  }
  var cur=location.search;
