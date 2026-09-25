@@ -398,7 +398,10 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     this item needs no shipping address or postage cost. */
  function priceNum(p){return String(p.price).replace(/[^0-9.]/g,'');}
  function attrsSimple(p){
-  return 'data-item-id="'+p.id+'" data-item-name="'+esc(p.title)+'" data-item-price="'+priceNum(p)+'" data-item-url="/api/snipcart?id='+p.id+'" data-item-image="'+(p.thumb||'')+'" data-item-description="'+esc(p.desc||p.title)+'"'+(p.kind==='Digital download'?' data-item-shippable="false"':'');
+  var isDigital=p.kind==='Digital download';
+  var name=p.title+(isDigital?' — Digital Download':'');
+  var desc=(isDigital?'Digital download. ':'')+(p.desc||p.title);
+  return 'data-item-id="'+p.id+'" data-item-name="'+esc(name)+'" data-item-price="'+priceNum(p)+'" data-item-url="/api/snipcart?id='+p.id+'" data-item-image="'+(p.thumb||'')+'" data-item-description="'+esc(desc)+'"'+(isDigital?' data-item-shippable="false"':'');
  }
  function buy(p){
   if(p.variants){
