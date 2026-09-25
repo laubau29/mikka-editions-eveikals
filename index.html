@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,6 +132,10 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 }
 button.btn{border:0;cursor:pointer;font-family:inherit}
 select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 16px;font:inherit;background:var(--paper);color:var(--ink);border:1px solid var(--ink)}
+.fmt-toggle{display:flex;gap:0;margin:14px 0 18px;border:1px solid var(--ink);width:fit-content}
+.fmt-btn{font:inherit;background:none;border:0;cursor:pointer;padding:10px 18px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink)}
+.fmt-btn+.fmt-btn{border-left:1px solid var(--ink)}
+.fmt-btn.active{background:var(--ink);color:var(--paper)}
 
 /* Product gallery + zoom */
 .gallery{display:flex;flex-direction:column;gap:10px}
@@ -309,6 +312,20 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  };
  function wordRe(w){return new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(?:s|es)?\\b','i');}
  var EDITION_MAP={ /* 'pf-475043752':['animal-people'] */ };
+ /* ===================================================================
+    DIGITAL TWINS — a design that already sells as a Printful physical
+    item can ALSO sell as a digital download, on the SAME product page,
+    with a Physical / Digital toggle, instead of a separate duplicate
+    listing. Key = the exact product title as it already appears on
+    your live shop (copy it exactly, including capitalisation). */
+ var DIGITAL_TWINS={
+  'Standard Postcard Fog Season Cards':{
+   price:'€1.50',
+   thumb:'find-me-among-the-pines.jpg.png',
+   desc:'A quiet card for anyone who would rather be surrounded by trees than people.',
+   contents:['One ZIP file, downloaded instantly after payment','Print-ready PDF (300 dpi) + JPG, A6 and 4 x 6 inch','START-HERE.txt with printing notes','Personal-use licence']
+  }
+ };
  var PRODUCTS=[
   {id:'cat-person-card',title:'Cat Person Card',dept:'cards',editions:['animal-people'],price:'€4.50',kind:'Digital download',art:['#C99D39','#AE4C35'],
    desc:'A dry little card for someone whose personality is mostly cat.',contents:['Print-ready PDF + 300 dpi JPG','A6 and 4 x 6 inch versions','Personal-use licence']},
@@ -322,10 +339,6 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    desc:'Four ways to say it without the usual greeting-card voice.',contents:['4 designs, print-ready PDF + JPG','A6 and 4 x 6 inch versions','Personal-use licence']},
   {id:'desk-life-pack',title:'Desk Life Asset Pack',dept:'art-assets',editions:['at-work','odd-little-things'],price:'€24.00',kind:'Digital download',art:['#58717A','#F2E9D8'],
    desc:'Indexed flat-geometric objects for decks, docs and small business use.',contents:['40 indexed SVG + PNG files','Commercial licence included','START-HERE index and usage notes']},
-  {id:'find-me-among-the-pines',title:'Standard Postcard Fog Season Cards',dept:'cards',editions:['fog-season'],price:'€4.50',kind:'Digital download',
-   thumb:'find-me-among-the-pines.jpg.png',
-   desc:'A quiet card for anyone who would rather be surrounded by trees than people.',
-   contents:['One ZIP file, downloaded instantly after payment','Print-ready PDF (300 dpi) + JPG, A6 and 4 x 6 inch','START-HERE.txt with printing notes','Personal-use licence']},
 
   {id:'little-elsewhere-card',title:'Little Elsewhere Card',dept:'cards',editions:['little-elsewhere'],motif:'road',price:'€4.50',kind:'Digital download',art:['#58717A','#252622'],
    desc:'A quiet road toward one more hill, for anyone already thinking about the next trip.',contents:['Print-ready PDF + 300 dpi JPG','A6 and 4 x 6 inch versions','Personal-use licence']},
@@ -398,7 +411,54 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   }
   return '<p><span class="soon">Coming soon</span></p>';
  }
- function card(p){return '<a class="card" href="?p=product/'+p.id+'"><div class="frame">'+pic(p)+'</div><h4>'+p.title+'</h4><p class="meta">'+p.price+' · '+p.kind+'</p></a>';}
+ /* One product page can offer Physical AND Digital as a toggle, instead of two
+    separate listings. formatBlock renders the price / contents / delivery note /
+    buy button for whichever format is currently selected. */
+ function formatBlock(p,fmt){
+  if(fmt==='digital'&&p.digital){
+   var d=p.digital;
+   return '<p class="price">'+d.price+'</p><p>'+(d.desc||p.desc)+'</p>'+
+    '<h3>What you get</h3><ul><li>'+d.contents.join('</li><li>')+'</li></ul>'+
+    '<h3>Delivery</h3><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>'+
+    buy({id:p.id+'-digital',title:p.title,price:d.price,kind:'Digital download',thumb:d.thumb||p.thumb,desc:d.desc||p.desc});
+  }
+  return '<p class="price">'+p.price+'</p><p>'+p.desc+'</p>'+
+   '<h3>What you get</h3><ul><li>'+p.contents.join('</li><li>')+'</li></ul>'+
+   (p.kind==='Physical'?'<h3>Size &amp; garment</h3><p>Size chart and fabric details are listed with the garment. Produced to order and shipped separately from any downloads in the same basket.</p>':'<h3>Delivery</h3><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>')+
+   buy(p);
+ }
+ function formatToggle(p){
+  if(!p.digital)return '';
+  return '<div class="fmt-toggle">'+
+   '<button type="button" class="fmt-btn active" data-fmt="physical" onclick="mkSetFormat(\''+p.id+'\',\'physical\',this)">Physical</button>'+
+   '<button type="button" class="fmt-btn" data-fmt="digital" onclick="mkSetFormat(\''+p.id+'\',\'digital\',this)">Digital download</button>'+
+   '</div>';
+ }
+ function bindVariantSelect(){
+  var sel=document.getElementById('variant');
+  if(!sel)return;
+  sel.onchange=function(){
+   var p=PRODUCTS.filter(function(x){return x.id===sel.dataset.pid;})[0],v=p.variants[sel.value],b=document.getElementById('add');
+   b.setAttribute('data-item-id','pf-'+v.id);b.setAttribute('data-item-name',v.name);b.setAttribute('data-item-price',v.price);
+   b.setAttribute('data-item-url','/api/snipcart?id=pf-'+v.id);if(v.image)b.setAttribute('data-item-image',v.image);
+   var list=imgList(p,v);window.__mkImages=list;
+   var frame=document.querySelector('.gallery .frame');
+   if(frame)frame.innerHTML=list?'<img id="mainImg" src="'+list[0]+'" alt="'+esc(p.title)+'">':art(p.art,0,p.motif);
+   var thumbsWrap=document.querySelector('.gallery .thumbs'), newThumbs=thumbHTML(list,0);
+   if(thumbsWrap&&newThumbs)thumbsWrap.outerHTML=newThumbs;
+   else if(thumbsWrap)thumbsWrap.remove();
+   else if(newThumbs)document.querySelector('.gallery').insertAdjacentHTML('beforeend',newThumbs);
+  };
+ }
+ window.mkSetFormat=function(id,fmt,btn){
+  var p=PRODUCTS.filter(function(x){return x.id===id;})[0];if(!p)return;
+  document.querySelectorAll('.fmt-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  var panel=document.getElementById('fmtPanel');
+  if(panel)panel.innerHTML=formatBlock(p,fmt);
+  bindVariantSelect();
+ };
+ function card(p){return '<a class="card" href="?p=product/'+p.id+'"><div class="frame">'+pic(p)+'</div><h4>'+p.title+'</h4><p class="meta">'+p.price+' · '+p.kind+(p.digital?' + digital available':'')+'</p></a>';}
  function grid(list){return list.length?'<div class="grid">'+list.map(card).join('')+'</div>':'<p class="empty">No products in this section yet — new editions are added here as they are released.</p>';}
  function byDept(d){return PRODUCTS.filter(function(p){return p.dept===d;});}
  function byEdition(e){return PRODUCTS.filter(function(p){return p.editions.indexOf(e)>-1;});}
@@ -432,11 +492,10 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     out='<section class="wrap page" style="max-width:1120px"><p class="crumb"><a href="/">Home</a> / <a href="?p=collections/'+p.dept+'">'+PROD[p.dept]+'</a> / '+p.title+'</p>'+
      '<div class="prod">'+galleryHTML(p,p.variants?p.variants[0]:null)+'<div>'+
      '<span class="tag">'+p.kind+'</span><span class="tag">'+PROD[p.dept]+'</span>'+
-     '<h1 style="margin-top:14px">'+p.title+'</h1><p class="price">'+p.price+'</p><p>'+p.desc+'</p>'+
-     '<h3>What you get</h3><ul><li>'+p.contents.join('</li><li>')+'</li></ul>'+
-     (p.kind==='Physical'?'<h3>Size &amp; garment</h3><p>Size chart and fabric details are listed with the garment. Produced to order and shipped separately from any downloads in the same basket.</p>':'<h3>Delivery</h3><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>')+
+     '<h1 style="margin-top:14px">'+p.title+'</h1>'+
+     formatToggle(p)+
+     '<div id="fmtPanel">'+formatBlock(p,'physical')+'</div>'+
      '<h3>Editions</h3><p>'+eds+'</p>'+
-     buy(p)+
      '<p class="meta">Questions? <a href="?p=contact">Contact support</a></p>'+
      '</div></div><a class="back" href="?p=collections/'+p.dept+'">Back to '+PROD[p.dept]+'</a></section>';
    } else out=loaded?P('Product not found','<p>That product is not in the catalogue.</p>'):P('Loading…','<p>Fetching the latest products.</p>');
@@ -454,20 +513,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   } else out=P('Page not found','<p>That page does not exist yet. Every link on this site leads somewhere — if you reached this, tell us at <a href="mailto:hello@mikkaeditions.com">hello@mikkaeditions.com</a>.</p>');
   main.innerHTML=out;window.scrollTo(0,0);
   if(failed)main.insertAdjacentHTML('afterbegin','<div class="wrap"><p class="empty">Live products are temporarily unavailable. Please refresh in a moment.</p></div>');
-  var sel=document.getElementById('variant');
-  if(sel)sel.onchange=function(){
-   var p=PRODUCTS.filter(function(x){return x.id===sel.dataset.pid;})[0],v=p.variants[sel.value],b=document.getElementById('add');
-   b.setAttribute('data-item-id','pf-'+v.id);b.setAttribute('data-item-name',v.name);b.setAttribute('data-item-price',v.price);
-   b.setAttribute('data-item-url','/api/snipcart?id=pf-'+v.id);if(v.image)b.setAttribute('data-item-image',v.image);
-   /* also swap the visible photo + thumbnails to match the chosen variant */
-   var list=imgList(p,v);window.__mkImages=list;
-   var frame=document.querySelector('.gallery .frame');
-   if(frame)frame.innerHTML=list?'<img id="mainImg" src="'+list[0]+'" alt="'+esc(p.title)+'">':art(p.art,0,p.motif);
-   var thumbsWrap=document.querySelector('.gallery .thumbs'), newThumbs=thumbHTML(list,0);
-   if(thumbsWrap&&newThumbs)thumbsWrap.outerHTML=newThumbs;
-   else if(thumbsWrap)thumbsWrap.remove();
-   else if(newThumbs)document.querySelector('.gallery').insertAdjacentHTML('beforeend',newThumbs);
-  };
+  bindVariantSelect();
  }
  var cur=location.search;
  var old=location.hash.match(/^#\/(.+)/);
@@ -484,7 +530,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  /* Live Printful products (served by /api/printful-products), retried a few times */
  function load(n){
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
-   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));});
+   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS[p.title])p.digital=DIGITAL_TWINS[p.title];});
    PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
    loaded=true;failed=false;render();
   }).catch(function(){if(n>0)setTimeout(function(){load(n-1);},2500);else{loaded=true;failed=true;render();}});
