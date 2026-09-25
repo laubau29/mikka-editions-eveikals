@@ -326,6 +326,10 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     listing. Key = the exact product title as it already appears on
     your live shop (copy it exactly, including capitalisation). */
  var DIGITAL_TWINS={
+  /* Only needed when ONE specific product needs a custom digital price, its own
+     photo, or different contents than the automatic default below. Everything
+     else (every card, sticker and poster) gets a digital option automatically —
+     see autoDigitalTwin() further down. */
   'Standard Postcard Fog Season Cards':{
    price:'€1.50',
    thumb:'find-me-among-the-pines.jpg.png',
@@ -333,6 +337,22 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    contents:['One ZIP file, downloaded instantly after payment','Print-ready PDF (300 dpi) + JPG, A6 and 4 x 6 inch','START-HERE.txt with printing notes','Personal-use licence']
   }
  };
+ /* Every card, sticker or poster is, by your own rule, also sold as a digital download of
+    the same design — so instead of listing each one by hand, build a sensible default:
+    roughly 60% of the physical price (never under €1), generic ZIP contents. Departments
+    that can't sensibly be a home-printed download (t-shirts, bundles, art-assets) are left
+    untouched — only add a department here if it should ALSO get an automatic digital twin. */
+ var AUTO_DIGITAL_DEPTS=['cards','stickers','prints'];
+ function autoDigitalTwin(p){
+  var physical=parseFloat(String(p.price).replace(/[^0-9.]/g,''))||0;
+  var digitalPrice=Math.max(1,Math.round(physical*0.6*2)/2); // round to nearest €0.50
+  return {
+   price:'€'+digitalPrice.toFixed(2),
+   thumb:p.thumb,
+   desc:'Digital version of this design — print it yourself at home or at any print shop.',
+   contents:['One ZIP file, downloaded instantly after payment','Print-ready PDF (300 dpi) + JPG','START-HERE.txt with printing notes','Personal-use licence']
+  };
+ }
  var PRODUCTS=[
   {id:'cat-person-card',title:'Cat Person Card',dept:'cards',editions:['animal-people'],price:'€4.50',kind:'Digital download',art:['#C99D39','#AE4C35'],
    desc:'A dry little card for someone whose personality is mostly cat.',contents:['Print-ready PDF + 300 dpi JPG','A6 and 4 x 6 inch versions','Personal-use licence']},
@@ -434,16 +454,34 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    :'Produced to order on quality stock and shipped separately from any downloads in the same basket.';
   return '<h3>'+heading+'</h3><p>'+intro+'</p>'+(isGarment?sizeChartHTML(p.sizeChart):'')+(p.care?'<div class="care">'+p.care+'</div>':'');
  }
- function sizeChartHTML(chart){
-  if(!chart||!chart.rows||!chart.rows.length||!chart.labels||!chart.labels.length)return '';
-  var head='<tr><th>Size</th>'+chart.labels.map(function(l){return '<th>'+esc(l)+'</th>';}).join('')+'</tr>';
-  var body=chart.rows.map(function(r){
-   return '<tr><td>'+esc(r.size||'')+'</td>'+chart.labels.map(function(l,i){
-    var cm=(r.cm&&r.cm[i]!=null)?r.cm[i]+' cm':'', inch=(r.inch&&r.inch[i]!=null)?r.inch[i]+' in':'';
-    return '<td>'+esc([cm,inch].filter(Boolean).join(' / '))+'</td>';
+ /* chart is an array of {key, data} sections from Printful (measure_yourself /
+    product_measure / international) — we don't know the exact field names inside
+    each row ahead of time, so build the table from whatever keys actually show up. */
+ var SIZE_SECTION_LABEL={measure_yourself:'How to measure yourself',product_measure:'Product measurements',international:'International size chart'};
+ function oneSizeTable(rows){
+  if(!Array.isArray(rows)||!rows.length)return '';
+  var cols=[];
+  rows.forEach(function(row){Object.keys(row||{}).forEach(function(k){if(cols.indexOf(k)===-1)cols.push(k);});});
+  if(!cols.length)return '';
+  var head='<tr>'+cols.map(function(c){return '<th>'+esc(c)+'</th>';}).join('')+'</tr>';
+  var body=rows.map(function(row){
+   return '<tr>'+cols.map(function(c){
+    var v=row[c];
+    if(v==null)v='';
+    else if(typeof v==='object')v=Object.keys(v).map(function(k2){return k2+': '+v[k2];}).join(', ');
+    return '<td>'+esc(String(v))+'</td>';
    }).join('')+'</tr>';
   }).join('');
   return '<table class="sizetable">'+head+body+'</table>';
+ }
+ function sizeChartHTML(chart){
+  if(!chart||!chart.length)return '';
+  return chart.map(function(section){
+   var rows=Array.isArray(section.data)?section.data:(section.data&&section.data.size_tables)||[];
+   var table=oneSizeTable(rows);
+   if(!table)return '';
+   return '<h4 style="margin:14px 0 6px;font-size:13px">'+esc(SIZE_SECTION_LABEL[section.key]||section.key)+'</h4>'+table;
+  }).join('');
  }
  function formatBlock(p,fmt){
   if(fmt==='digital'&&p.digital){
@@ -561,7 +599,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  /* Live Printful products (served by /api/printful-products), retried a few times */
  function load(n){
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
-   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS[p.title])p.digital=DIGITAL_TWINS[p.title];});
+   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS[p.title])p.digital=DIGITAL_TWINS[p.title];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);});
    PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
    loaded=true;failed=false;render();
   }).catch(function(){if(n>0)setTimeout(function(){load(n-1);},2500);else{loaded=true;failed=true;render();}});
