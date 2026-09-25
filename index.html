@@ -321,6 +321,10 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    desc:'Four ways to say it without the usual greeting-card voice.',contents:['4 designs, print-ready PDF + JPG','A6 and 4 x 6 inch versions','Personal-use licence']},
   {id:'desk-life-pack',title:'Desk Life Asset Pack',dept:'art-assets',editions:['at-work','odd-little-things'],price:'€24.00',kind:'Digital download',art:['#58717A','#F2E9D8'],
    desc:'Indexed flat-geometric objects for decks, docs and small business use.',contents:['40 indexed SVG + PNG files','Commercial licence included','START-HERE index and usage notes']},
+  {id:'find-me-among-the-pines',title:'Find Me Among the Pines Card',dept:'cards',editions:['fog-season'],price:'€4.50',kind:'Digital download',
+   thumb:'images/find-me-among-the-pines.jpg',
+   desc:'A quiet card for anyone who would rather be surrounded by trees than people.',
+   contents:['One ZIP file, downloaded instantly after payment','Print-ready PDF (300 dpi) + JPG, A6 and 4 x 6 inch','START-HERE.txt with printing notes','Personal-use licence']},
 
   {id:'little-elsewhere-card',title:'Little Elsewhere Card',dept:'cards',editions:['little-elsewhere'],motif:'road',price:'€4.50',kind:'Digital download',art:['#58717A','#252622'],
    desc:'A quiet road toward one more hill, for anyone already thinking about the next trip.',contents:['Print-ready PDF + 300 dpi JPG','A6 and 4 x 6 inch versions','Personal-use licence']},
@@ -375,10 +379,23 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   document.getElementById('lightbox').classList.add('open');
  };
  function attrs(p,v){return 'data-item-id="pf-'+v.id+'" data-item-name="'+esc(v.name)+'" data-item-price="'+v.price+'" data-item-url="/api/snipcart?id=pf-'+v.id+'" data-item-image="'+(v.image||p.thumb||'')+'" data-item-description="'+p.title+'"';}
+ /* A simple product with no colour/size choices (most digital downloads) just needs
+    one Add to cart button, no dropdown. data-item-shippable="false" tells Snipcart
+    this item needs no shipping address or postage cost. */
+ function priceNum(p){return String(p.price).replace(/[^0-9.]/g,'');}
+ function attrsSimple(p){
+  return 'data-item-id="'+p.id+'" data-item-name="'+esc(p.title)+'" data-item-price="'+priceNum(p)+'" data-item-url="/api/snipcart?id='+p.id+'" data-item-image="'+(p.thumb||'')+'" data-item-description="'+esc(p.desc||p.title)+'"'+(p.kind==='Digital download'?' data-item-shippable="false"':'');
+ }
  function buy(p){
-  if(!p.variants)return '<p><span class="soon">Coming soon</span></p>';
-  return '<select class="variant" id="variant" data-pid="'+p.id+'" aria-label="Choose option">'+p.variants.map(function(x,i){return '<option value="'+i+'">'+esc(x.name)+' — '+x.label+'</option>';}).join('')+'</select>'+
-   '<p><button class="btn snipcart-add-item" id="add" '+attrs(p,p.variants[0])+'>Add to cart</button></p>';
+  if(p.variants){
+   return '<select class="variant" id="variant" data-pid="'+p.id+'" aria-label="Choose option">'+p.variants.map(function(x,i){return '<option value="'+i+'">'+esc(x.name)+' — '+x.label+'</option>';}).join('')+'</select>'+
+    '<p><button class="btn snipcart-add-item" id="add" '+attrs(p,p.variants[0])+'>Add to cart</button></p>';
+  }
+  if(p.price){
+   return '<p><button class="btn snipcart-add-item" id="add" '+attrsSimple(p)+'>Add to cart</button></p>'+
+    (p.kind==='Digital download'?'<p class="meta">The ZIP file for this design is attached to it in your Snipcart dashboard (Products → this item → Downloadable file), so it emails to the buyer automatically once payment goes through.</p>':'');
+  }
+  return '<p><span class="soon">Coming soon</span></p>';
  }
  function card(p){return '<a class="card" href="?p=product/'+p.id+'"><div class="frame">'+pic(p)+'</div><h4>'+p.title+'</h4><p class="meta">'+p.price+' · '+p.kind+'</p></a>';}
  function grid(list){return list.length?'<div class="grid">'+list.map(card).join('')+'</div>':'<p class="empty">No products in this section yet — new editions are added here as they are released.</p>';}
