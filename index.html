@@ -140,6 +140,9 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 .care p{margin:0 0 10px}
 .care ul{padding-left:20px;margin:0 0 10px}
 .care li{margin-bottom:4px}
+.sizetable{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:13px}
+.sizetable th,.sizetable td{border:1px solid rgba(37,38,34,.25);padding:6px 8px;text-align:left}
+.sizetable th{background:var(--paper-dim,rgba(37,38,34,.06));font-weight:700}
 
 /* Product gallery + zoom */
 .gallery{display:flex;flex-direction:column;gap:10px}
@@ -421,6 +424,27 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  /* One product page can offer Physical AND Digital as a toggle, instead of two
     separate listings. formatBlock renders the price / contents / delivery note /
     buy button for whichever format is currently selected. */
+ /* Postcards, posters and stickers get "Paper & printing"; only actual wearable
+    garments (t-shirts, hoodies) get "Size & garment" wording plus a size chart. */
+ function physicalDetailsHTML(p){
+  var isGarment=p.dept==='t-shirts';
+  var heading=isGarment?'Size &amp; garment':'Paper &amp; printing';
+  var intro=isGarment
+   ?'Size chart and fabric details are below. Produced to order and shipped separately from any downloads in the same basket.'
+   :'Produced to order on quality stock and shipped separately from any downloads in the same basket.';
+  return '<h3>'+heading+'</h3><p>'+intro+'</p>'+(isGarment?sizeChartHTML(p.sizeChart):'')+(p.care?'<div class="care">'+p.care+'</div>':'');
+ }
+ function sizeChartHTML(chart){
+  if(!chart||!chart.rows||!chart.rows.length||!chart.labels||!chart.labels.length)return '';
+  var head='<tr><th>Size</th>'+chart.labels.map(function(l){return '<th>'+esc(l)+'</th>';}).join('')+'</tr>';
+  var body=chart.rows.map(function(r){
+   return '<tr><td>'+esc(r.size||'')+'</td>'+chart.labels.map(function(l,i){
+    var cm=(r.cm&&r.cm[i]!=null)?r.cm[i]+' cm':'', inch=(r.inch&&r.inch[i]!=null)?r.inch[i]+' in':'';
+    return '<td>'+esc([cm,inch].filter(Boolean).join(' / '))+'</td>';
+   }).join('')+'</tr>';
+  }).join('');
+  return '<table class="sizetable">'+head+body+'</table>';
+ }
  function formatBlock(p,fmt){
   if(fmt==='digital'&&p.digital){
    var d=p.digital;
@@ -431,7 +455,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   }
   return '<p class="price">'+p.price+'</p><p>'+p.desc+'</p>'+
    '<h3>What you get</h3><ul><li>'+p.contents.join('</li><li>')+'</li></ul>'+
-   (p.kind==='Physical'?('<h3>Size &amp; garment</h3><p>Size chart and fabric details are listed with the garment. Produced to order and shipped separately from any downloads in the same basket.</p>'+(p.care?'<div class="care">'+p.care+'</div>':'')):'<h3>Delivery</h3><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>')+
+   (p.kind==='Physical'?physicalDetailsHTML(p):'<h3>Delivery</h3><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>')+
    buy(p);
  }
  function formatToggle(p){
