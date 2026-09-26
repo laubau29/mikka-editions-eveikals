@@ -730,12 +730,26 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  window.addEventListener('popstate',function(){if(location.search!==cur){cur=location.search;render();}});
  render();
  /* Live Printful products (served by /api/printful-products), retried a few times */
+ /* Matching a Printful product's title against EXTRA_POSTER_PHOTOS / GARMENT_CUTOUTS /
+    DIGITAL_TWINS used to require an exact, byte-for-byte match — a stray double space,
+    or an invisible character copied out of Printful, would silently fail to match with
+    nothing telling you why. normTitle() flattens that away (lower-case, single spaces,
+    trimmed) so a visually-identical title always matches, no matter tiny invisible typos. */
+ function normTitle(s){return String(s).toLowerCase().replace(/\s+/g,' ').trim();}
+ function normalizedLookup(obj){var m={};Object.keys(obj).forEach(function(k){m[normTitle(k)]=obj[k];});return m;}
+ var EXTRA_POSTER_PHOTOS_N=normalizedLookup(EXTRA_POSTER_PHOTOS);
+ var GARMENT_CUTOUTS_N=normalizedLookup(GARMENT_CUTOUTS);
+ var DIGITAL_TWINS_N=normalizedLookup(DIGITAL_TWINS);
  function load(n){
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
-   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS[p.title])p.digital=DIGITAL_TWINS[p.title];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
-    var extra=EXTRA_POSTER_PHOTOS[p.title];
-    if(extra&&extra.length&&p.variants&&p.variants[0]){p.variants[0].images=(p.variants[0].images||[]).concat(extra);}
-    var cutout=GARMENT_CUTOUTS[p.title];
+   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
+    var extra=EXTRA_POSTER_PHOTOS_N[nt];
+    if(extra&&extra.length&&p.variants&&p.variants[0]){
+     var v0=p.variants[0];
+     var base=(v0.images&&v0.images.length)?v0.images:(v0.image?[v0.image]:(p.thumb?[p.thumb]:[]));
+     v0.images=base.concat(extra);
+    }
+    var cutout=GARMENT_CUTOUTS_N[nt];
     if(cutout)p.thumb=cutout;
    });
    PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
