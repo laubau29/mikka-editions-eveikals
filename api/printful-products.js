@@ -177,27 +177,33 @@ function mergePosterGroups(list) {
     // Unframed first (so it's always the default photo + default dropdown pick),
     // then framed — and drop any exact duplicate option along the way.
     p.variants = dedupeVariants(p.variants).sort((a, b) => (a._style === b._style ? 0 : a._style === 'Unframed' ? -1 : 1));
-    // Build one shared photo strip: first one representative shot per frame colour
-    // that actually exists for this design (Black / Oak / White — skipped entirely
-    // if that colour isn't one of this design's options), then every other distinct
-    // mockup photo Printful has, so it's all browsable via the thumbnails first,
-    // before ever touching the dropdown. Capped at 12 so it never gets huge.
+    // Build one shared photo strip. Position 0 MUST be the plain unframed photo —
+    // that's both the main photo shown by default AND the first (highlighted)
+    // thumbnail, since the front end always shows list[0] as the main image. Then
+    // one representative shot per frame colour that actually exists for this design
+    // (Black / Oak / White — skipped entirely if that colour isn't one of this
+    // design's options), then every other distinct mockup photo Printful has.
+    // Capped at 12 so it never gets huge.
+    const unframedShot = p.variants[0] && p.variants[0].image;
+    const seenUrls = new Set(unframedShot ? [unframedShot] : []);
     const FRAME_COLOR_ORDER = ['Black', 'Oak', 'White'];
     const colorShot = {};
     p.variants.forEach((v) => {
       const m = /^Framed \/ (\w+)/.exec(v.name);
       if (m && v.image && !colorShot[m[1]]) colorShot[m[1]] = v.image;
     });
-    const frameShots = FRAME_COLOR_ORDER.filter((c) => colorShot[c]).map((c) => colorShot[c]);
-    Object.keys(colorShot).forEach((c) => { if (FRAME_COLOR_ORDER.indexOf(c) === -1) frameShots.push(colorShot[c]); });
-    const seenUrls = new Set(frameShots);
+    const frameShots = [];
+    FRAME_COLOR_ORDER.concat(Object.keys(colorShot).filter((c) => FRAME_COLOR_ORDER.indexOf(c) === -1)).forEach((c) => {
+      const url = colorShot[c];
+      if (url && !seenUrls.has(url)) { seenUrls.add(url); frameShots.push(url); }
+    });
     const mockups = [];
     p.variants.forEach((v) => {
       const imgs = (v.images && v.images.length) ? v.images : (v.image ? [v.image] : []);
       imgs.forEach((url) => { if (url && !seenUrls.has(url)) { seenUrls.add(url); mockups.push(url); } });
     });
-    const strip = frameShots.concat(mockups).slice(0, 12);
-    if (p.variants[0]) { p.variants[0].images = strip; p.thumb = p.variants[0].image || p.thumb; }
+    const strip = (unframedShot ? [unframedShot] : []).concat(frameShots, mockups).slice(0, 12);
+    if (p.variants[0]) { p.variants[0].images = strip; p.thumb = unframedShot || p.thumb; }
     p.variants.forEach((v) => { delete v._style; });
     const symMatch = (p.variants[0] && p.variants[0].label.match(/^[^\d\-]+/)) || ['€'];
     const min = Math.min(...p.variants.map((v) => v.price));
