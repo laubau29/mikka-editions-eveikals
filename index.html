@@ -404,7 +404,8 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     Example:
     'Unisex t-shirt Animal People White dogs': 'tshirt-animal-people-white-dogs-cutout.png',
     =================================================================== */
- var GARMENT_CUTOUTS={
+ var GARMENT_CUTOUTS={'Unisex t-shirt Animal People White dogs':'tshirt-animal-people-white-dogs-cutout.png',
+'Unisex t-shirt Animal People':'tshirt-animal-people01-cutout.png'
  };
  /* Every card, sticker or poster is, by your own rule, also sold as a digital download of
     the same design — so instead of listing each one by hand, build a sensible default:
@@ -720,8 +721,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS[p.title])p.digital=DIGITAL_TWINS[p.title];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
     var extra=EXTRA_POSTER_PHOTOS[p.title];
     if(extra&&extra.length&&p.variants&&p.variants[0]){p.variants[0].images=(p.variants[0].images||[]).concat(extra);}
-    var cutout=GARMENT_CUTOUTS['Unisex t-shirt Animal People White dogs': 'tshirt-animal-people-white-dogs-cutout.png',
-'Unisex t-shirt Animal People': 'tshirt-animal-people-cutout01.png',];
+    var cutout=GARMENT_CUTOUTS[p.title];;
     if(cutout)p.thumb=cutout;
    });
    PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
