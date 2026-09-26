@@ -98,7 +98,7 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 .social a:hover{opacity:1}
 
 /* Subpages */
-.page{padding:60px 0 80px;max-width:760px}
+.page{padding:60px 0 80px;max-width:760px;margin:0 auto}
 .crumb{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--fjord);margin:0 0 18px}
 .crumb a{text-decoration:none;border-bottom:1px solid rgba(88,113,122,.5)}
 .page h1{font-size:clamp(28px,4.6vw,44px);margin-bottom:18px}
@@ -114,6 +114,14 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 .back{display:inline-block;margin-top:30px;font-size:12px;letter-spacing:.16em;
   text-transform:uppercase;text-decoration:none;border-bottom:1px solid var(--ink);padding-bottom:3px}
 @media(max-width:560px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:900px){
+  .mark b{font-size:24px}
+  .mark span{font-size:11px}
+  .navlink{font-size:13px}
+  header .icons svg{width:23px;height:23px}
+  .page p,.page li{font-size:17px}
+  .page h3,.page h2{font-size:21px}
+}
 @media(max-width:820px){
   .wrap{padding:0 20px}
   .pgrid{grid-template-columns:repeat(2,1fr)}
