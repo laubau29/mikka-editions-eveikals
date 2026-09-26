@@ -60,7 +60,7 @@ h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,6vw,58px);line-
 .num{font-size:11px;letter-spacing:.2em;color:var(--fjord);margin:16px 0 4px}
 .ed h3{font-family:var(--serif);font-weight:400;font-size:21px;margin:0 0 5px}
 .ed p{margin:0;font-size:14px;max-width:38ch}
-.note{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;text-decoration:none;color:inherit}
+.note{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;text-decoration:none;color:inherit;height:100%}
 .note p{font-family:var(--serif);font-size:22px;font-style:italic;color:var(--fjord);margin:16px 0 14px}
 .note-cta{display:inline-flex;align-items:center;gap:8px;font-family:var(--sans);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brick);border-bottom:1px solid var(--brick);padding-bottom:4px;transition:gap .18s ease}
 .note-cta svg{width:14px;height:14px;flex:none}
@@ -144,6 +144,7 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 }
 @media(max-width:560px){
   .egrid{grid-template-columns:1fr;gap:34px}
+  .note{justify-content:flex-start;height:auto}
   .bar{gap:12px}
   .icons{gap:18px}
   .hero{padding-top:48px;padding-bottom:40px}
