@@ -7,7 +7,7 @@
 <meta name="description" content="Mikka Editions — original designs on posters, cards, stickers and apparel, printed to order, plus instant digital downloads to print yourself.">
 <style>
 :root{
-  --paper:#F2E9D8; --ink:#252622; --brick:#AE4C35; --fjord:#58717A; --ochre:#C99D39;
+  --paper:#F2E9D8; --ink:#252622; --brick:#AE4C35; --fjord:#4C6169; --ochre:#C99D39;
   --serif:Georgia,"Times New Roman",serif;
   --sans:Arial,Helvetica,"Helvetica Neue",sans-serif;
   box-sizing:border-box;
@@ -72,7 +72,7 @@ h1{font-family:var(--serif);font-weight:400;font-size:clamp(34px,6vw,58px);line-
 /* Footer */
 footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14px}
 .fgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px}
-.fgrid h4{font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin:0 0 14px;color:var(--fjord);font-weight:400}
+.fgrid h3{font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin:0 0 14px;color:var(--fjord);font-weight:400}
 .fgrid ul{list-style:none;margin:0;padding:0}
 .fgrid li{margin-bottom:9px}
 .fgrid a{text-decoration:none;border-bottom:1px solid transparent}
@@ -84,7 +84,7 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px 24px;margin:26px 0 10px}
 .card{text-decoration:none;color:inherit}
 .card .frame{aspect-ratio:1/1}
-.card h4{font-family:var(--serif);font-weight:400;font-size:16px;margin:12px 0 3px}
+.card .card-title{font-family:var(--serif);font-weight:400;font-size:16px;margin:12px 0 3px}
 .meta{font-size:12px;color:var(--fjord);margin:0}
 .tag{display:inline-block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   border:1px solid var(--fjord);color:var(--fjord);padding:3px 8px;margin-right:6px}
@@ -102,7 +102,7 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 .crumb{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--fjord);margin:0 0 18px}
 .crumb a{text-decoration:none;border-bottom:1px solid rgba(88,113,122,.5)}
 .page h1{font-size:clamp(28px,4.6vw,44px);margin-bottom:18px}
-.page h3{font-family:var(--serif);font-weight:400;font-size:19px;margin:30px 0 6px}
+.page h3,.page h2{font-family:var(--serif);font-weight:400;font-size:19px;margin:30px 0 6px}
 .page p{margin:0 0 14px;max-width:62ch}
 .page ul{max-width:62ch;padding-left:20px}
 .page li{margin-bottom:8px}
@@ -278,16 +278,16 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 <footer>
  <div class="wrap">
   <div class="fgrid">
-   <div><h4>Help</h4><ul>
+   <div><h3>Help</h3><ul>
     <li><a href="?p=contact">Contact</a></li><li><a href="?p=faq">FAQ</a></li>
     <li><a href="?p=downloads-printing">Downloads &amp; printing</a></li></ul></div>
-   <div><h4>Orders</h4><ul>
+   <div><h3>Orders</h3><ul>
     <li><a href="?p=delivery">Delivery &amp; tracking</a></li><li><a href="?p=returns">Returns &amp; refunds</a></li>
     <li><a href="?p=account">Account &amp; orders</a></li></ul></div>
-   <div><h4>Legal</h4><ul>
+   <div><h3>Legal</h3><ul>
     <li><a href="?p=licensing">Licensing</a></li><li><a href="?p=privacy">Privacy</a></li>
     <li><a href="?p=terms">Terms</a></li></ul></div>
-   <div><h4>Support</h4><ul>
+   <div><h3>Support</h3><ul>
     <li><a href="mailto:hello@mikkaeditions.com">hello@mikkaeditions.com</a></li>
     <li><a href="?p=about">About the studio</a></li></ul></div>
   </div>
@@ -561,7 +561,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     '<td>'+r.waistIn+' in'+(r.waistCm?' / '+r.waistCm+' cm':'')+'</td>'+
     '<td>'+r.hipsIn+' in'+(r.hipsCm?' / '+r.hipsCm+' cm':'')+'</td></tr>';
   }).join('');
-  return '<h4 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--fjord)">Size chart &amp; how to measure (US &amp; EU)</h4>'+
+  return '<h3 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--fjord);font-weight:700;font-family:var(--sans)">Size chart &amp; how to measure (US &amp; EU)</h3>'+
    '<div class="size-guide">'+
     sizeGuideIllustrationSVG()+
     '<div class="size-guide-text">'+
@@ -579,13 +579,13 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   if(fmt==='digital'&&p.digital){
    var d=p.digital;
    return '<p class="price">'+d.price+'</p><p>'+(d.desc||p.desc)+'</p>'+
-    '<h3>What you get</h3><ul><li>'+d.contents.join('</li><li>')+'</li></ul>'+
-    '<h3>Delivery</h3><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>'+
+    '<h2>What you get</h2><ul><li>'+d.contents.join('</li><li>')+'</li></ul>'+
+    '<h2>Delivery</h2><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>'+
     buy({id:p.id+'-digital',title:p.title,price:d.price,kind:'Digital download',thumb:d.thumb||p.thumb,desc:d.desc||p.desc});
   }
   return '<p class="price">'+p.price+'</p><p>'+p.desc+'</p>'+
-   '<h3>What you get</h3><ul><li>'+p.contents.join('</li><li>')+'</li></ul>'+
-   (p.kind==='Physical'?physicalDetailsHTML(p):'<h3>Delivery</h3><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>')+
+   '<h2>What you get</h2><ul><li>'+p.contents.join('</li><li>')+'</li></ul>'+
+   (p.kind==='Physical'?physicalDetailsHTML(p):'<h2>Delivery</h2><p>Files are emailed immediately after payment. Every download includes START-HERE instructions and printing notes.</p>')+
    buy(p);
  }
  function formatToggle(p){
@@ -619,26 +619,26 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   if(panel)panel.innerHTML=formatBlock(p,fmt);
   bindVariantSelect();
  };
- function card(p){return '<a class="card" href="?p=product/'+p.id+'"><div class="frame">'+pic(p)+'</div><h4>'+p.title+'</h4><p class="meta">'+p.price+' · '+p.kind+(p.digital?' + digital available':'')+'</p></a>';}
- function grid(list){return list.length?'<div class="grid">'+list.map(card).join('')+'</div>':'<p class="empty">No products in this section yet — new editions are added here as they are released.</p>';}
+ function card(p,lvl){var t=lvl||'h3';return '<a class="card" href="?p=product/'+p.id+'"><div class="frame">'+pic(p)+'</div><'+t+' class="card-title">'+p.title+'</'+t+'><p class="meta">'+p.price+' · '+p.kind+(p.digital?' + digital available':'')+'</p></a>';}
+ function grid(list,lvl){return list.length?'<div class="grid">'+list.map(function(p){return card(p,lvl);}).join('')+'</div>':'<p class="empty">No products in this section yet — new editions are added here as they are released.</p>';}
  function byDept(d){return PRODUCTS.filter(function(p){return p.dept===d;});}
  function byEdition(e){return PRODUCTS.filter(function(p){return p.editions.indexOf(e)>-1;});}
- function grouped(list){var h='';for(var k in PROD){var s=list.filter(function(p){return p.dept===k;});if(s.length)h+='<h3>'+PROD[k]+'</h3>'+grid(s);}return h;}
+ function grouped(list){var h='';for(var k in PROD){var s=list.filter(function(p){return p.dept===k;});if(s.length)h+='<h2>'+PROD[k]+'</h2>'+grid(s);}return h;}
 
  function tiles(){var h='<div class="tiles">';for(var k in PROD)h+='<a href="?p=collections/'+k+'">'+PROD[k]+'</a>';return h+'</div>';}
  function P(t,b,soon){return '<section class="wrap page"><p class="crumb"><a href="/">Home</a> / '+t+'</p><h1>'+t+'</h1>'+(soon?'<span class="soon">Coming soon</span>':'')+b+'<a class="back" href="/">Back to home</a></section>';}
  var S={
-  'about':P('Different ideas. One independent studio.','<p>Mikka Editions is a small, independent design studio. Nine subject editions sit under one roof, each with its own tone, all drawn in the same flat, graphic style.</p><p>Most products are digital downloads you print yourself. Selected posters and T-shirts are produced and shipped by a print partner.</p><h3>Browse by product</h3>'+tiles()),
-  'contact':P('Contact','<p>Send an enquiry and we will reply from the studio inbox. Include an order number if your message is about a purchase.</p><h3>Email</h3><p><a href="mailto:hello@mikkaeditions.com">hello@mikkaeditions.com</a></p><h3>Enquiry types</h3><ul><li>Download access or missing files</li><li>Printing questions</li><li>Delivery, tracking and damaged items</li><li>Licensing and commercial use</li></ul><p>The contact form is connected during the shop build.</p>',1),
-  'faq':P('FAQ','<h3>How do I get my files?</h3><p>After a successful payment you receive an order confirmation with a download link. Every pack includes a START-HERE file with printing notes.</p><h3>What formats do I get?</h3><p>Cards arrive as print-ready PDF and 300 dpi JPG in A6 and 4 x 6 inch. Stickers arrive as transparent PNG plus a printable PDF sheet with cutting guidance.</p><h3>Can I use designs commercially?</h3><p>Ordinary downloads carry a personal-use licence. Commercial use is offered only for designated asset packs.</p><h3>Shirt sizes and production?</h3><p>Each shirt listing includes a size chart and garment details. Physical items are produced and shipped by our print partner.</p>'),
-  'downloads-printing':P('Downloads &amp; printing','<p>Files are delivered by email link after payment. Links can be resent from your account or by contacting support.</p><h3>Printing notes</h3><ul><li>Print at 100% scale, no "fit to page"</li><li>Use the heaviest paper your printer supports for cards</li><li>Sticker sheets print best on adhesive A4 or Letter stock</li></ul>',1),
+  'about':P('Different ideas. One independent studio.','<p>Mikka Editions is a small, independent design studio. Nine subject editions sit under one roof, each with its own tone, all drawn in the same flat, graphic style.</p><p>Most products are digital downloads you print yourself. Selected posters and T-shirts are produced and shipped by a print partner.</p><h2>Browse by product</h2>'+tiles()),
+  'contact':P('Contact','<p>Send an enquiry and we will reply from the studio inbox. Include an order number if your message is about a purchase.</p><h2>Email</h2><p><a href="mailto:hello@mikkaeditions.com">hello@mikkaeditions.com</a></p><h2>Enquiry types</h2><ul><li>Download access or missing files</li><li>Printing questions</li><li>Delivery, tracking and damaged items</li><li>Licensing and commercial use</li></ul><p>The contact form is connected during the shop build.</p>',1),
+  'faq':P('FAQ','<h2>How do I get my files?</h2><p>After a successful payment you receive an order confirmation with a download link. Every pack includes a START-HERE file with printing notes.</p><h2>What formats do I get?</h2><p>Cards arrive as print-ready PDF and 300 dpi JPG in A6 and 4 x 6 inch. Stickers arrive as transparent PNG plus a printable PDF sheet with cutting guidance.</p><h2>Can I use designs commercially?</h2><p>Ordinary downloads carry a personal-use licence. Commercial use is offered only for designated asset packs.</p><h2>Shirt sizes and production?</h2><p>Each shirt listing includes a size chart and garment details. Physical items are produced and shipped by our print partner.</p>'),
+  'downloads-printing':P('Downloads &amp; printing','<p>Files are delivered by email link after payment. Links can be resent from your account or by contacting support.</p><h2>Printing notes</h2><ul><li>Print at 100% scale, no "fit to page"</li><li>Use the heaviest paper your printer supports for cards</li><li>Sticker sheets print best on adhesive A4 or Letter stock</li></ul>',1),
   'delivery':P('Delivery &amp; tracking','<p>Digital items arrive immediately by email. Physical posters and T-shirts are produced to order and ship separately, with tracking sent once dispatched.</p><p>Destinations, rates and production times are confirmed during the shop build.</p>',1),
   'returns':P('Returns &amp; refunds','<p>Digital downloads and physical goods follow separate policies. Damaged or misprinted physical items are replaced once confirmed with a photo.</p><p>Final wording depends on the registered business location and is published before launch.</p>',1),
-  'licensing':P('Licensing','<p>Ordinary downloads are licensed for personal use. Designated asset packs carry a commercial licence stated on the product page.</p><h3>Not permitted</h3><ul><li>Redistributing or reselling the files themselves</li><li>Claiming authorship of the artwork</li><li>Mass production without a commercial licence</li></ul>'),
+  'licensing':P('Licensing','<p>Ordinary downloads are licensed for personal use. Designated asset packs carry a commercial licence stated on the product page.</p><h2>Not permitted</h2><ul><li>Redistributing or reselling the files themselves</li><li>Claiming authorship of the artwork</li><li>Mass production without a commercial licence</li></ul>'),
   'privacy':P('Privacy','<p>We collect only what is needed to process orders, deliver files and answer support enquiries. Payment details are handled by the payment provider, never stored by the studio.</p>',1),
   'terms':P('Terms','<p>These terms cover purchases, download access, licences and the limits of the service. Final wording is published before launch.</p>',1),
   'account':P('Account &amp; orders','<p>Sign in to see past orders, re-download your files and update your details.</p><p>Accounts are connected when the store foundation is configured.</p>',1),
-  'cart':P('Your bag','<p>Your bag is empty.</p><p>One checkout can hold both downloads and physical items. Files arrive by email; physical items ship separately, and shipping is applied only to physical goods.</p><h3>Start here</h3>'+tiles(),1)
+  'cart':P('Your bag','<p>Your bag is empty.</p><p>One checkout can hold both downloads and physical items. Files arrive by email; physical items ship separately, and shipping is applied only to physical goods.</p><h2>Start here</h2>'+tiles(),1)
  };
  function render(){
   var h=(new URLSearchParams(location.search).get('p')||'').replace(/^\/+|\/+$/g,'');
@@ -663,13 +663,13 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   }
   else if(h.indexOf('collections/')===0){
    var k=h.slice(12);
-   out=k==='all'?P('Shop the collection','<p>Every edition, across six product departments. Digital and physical formats are labelled on each listing.</p>'+grouped(PRODUCTS)+'<h3>Browse by department</h3>'+tiles())
-    :P(PROD[k]||'Collection','<p>'+(PROD[k]||'This collection')+' across all nine editions. Each listing states contents, sizes, formats and licence.</p>'+grid(byDept(k))+'<h3>Other departments</h3>'+tiles());
+   out=k==='all'?P('Shop the collection','<p>Every edition, across six product departments. Digital and physical formats are labelled on each listing.</p>'+grouped(PRODUCTS)+'<h2>Browse by department</h2>'+tiles())
+    :P(PROD[k]||'Collection','<p>'+(PROD[k]||'This collection')+' across all nine editions. Each listing states contents, sizes, formats and licence.</p>'+grid(byDept(k),'h2')+'<h2>Other departments</h2>'+tiles());
   } else if(h.indexOf('editions/')===0){
    var parts=h.slice(9).split('/'),slug=parts[0],dep=parts[1],e=ED[slug];
    var items=byEdition(slug),pick=(dep&&PROD[dep])?items.filter(function(x){return x.dept===dep;}):items;
-   var chips='<h3>Shop product</h3><div class="tiles">'+Object.keys(PROD).filter(function(k){return items.some(function(x){return x.dept===k;});}).map(function(k){return '<a href="?p=editions/'+slug+'/'+k+'">'+PROD[k]+'</a>';}).join('')+'</div>'+(dep?'<p><a class="back" style="margin:0" href="?p=editions/'+slug+'">Show everything in this edition</a></p>':'');
-   out=e?P(e[0],'<p>'+e[1]+'</p><p>This edition appears across cards, stickers, prints, T-shirts, art assets and bundles. Edition names describe subject matter, not product format.</p>'+(items.length?chips+grouped(pick):'<p class="empty">No products in this edition yet.</p>')+'<h3>Browse by department</h3>'+tiles())
+   var chips='<h2>Shop product</h2><div class="tiles">'+Object.keys(PROD).filter(function(k){return items.some(function(x){return x.dept===k;});}).map(function(k){return '<a href="?p=editions/'+slug+'/'+k+'">'+PROD[k]+'</a>';}).join('')+'</div>'+(dep?'<p><a class="back" style="margin:0" href="?p=editions/'+slug+'">Show everything in this edition</a></p>':'');
+   out=e?P(e[0],'<p>'+e[1]+'</p><p>This edition appears across cards, stickers, prints, T-shirts, art assets and bundles. Edition names describe subject matter, not product format.</p>'+(items.length?chips+grouped(pick):'<p class="empty">No products in this edition yet.</p>')+'<h2>Browse by department</h2>'+tiles())
     :P('Edition not found','<p>That edition does not exist yet.</p>');
   } else out=P('Page not found','<p>That page does not exist yet. Every link on this site leads somewhere — if you reached this, tell us at <a href="mailto:hello@mikkaeditions.com">hello@mikkaeditions.com</a>.</p>');
   main.innerHTML=out;window.scrollTo(0,0);
