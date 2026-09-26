@@ -111,15 +111,32 @@ function posterDisplayTitle(title) {
     .replace(/\s+/g, ' ')
     .trim();
 }
-// Printful occasionally has two separate store listings for the exact same option
-// (a leftover duplicate sync) — this collapses any variants that share the same
-// name AND price down to one, so a duplicate on Printful's side never shows as a
-// repeated option in the dropdown here.
+// Printful sometimes lists the exact same physical size twice — once labelled in
+// cm, once in inches (e.g. "A2 (42×59.4 cm)" and "A2 (16.5″×23.3″)" are the same
+// poster) — because the two came from different store listings. A plain text
+// match misses that, so this reads out the two numbers regardless of unit,
+// converts inches to cm, and rounds — so both labels collapse to the same key.
+function sizeDedupeKey(name) {
+  // Printful attaches the unit to EACH number in an inch label ("16.5″×23.3″"),
+  // not just once at the end — so both numbers get their own optional unit here.
+  const m = /([\d.]+)\s*(cm|in|″)?\s*[×x]\s*([\d.]+)\s*(cm|in|″)?\)?\s*$/i.exec(name);
+  if (!m) return name.toLowerCase();
+  const toCm = (n, unit) => (/["″]|in/i.test(unit || '') ? Number(n) * 2.54 : Number(n));
+  const unit = m[2] || m[4];
+  const w = Math.round(toCm(m[1], unit));
+  const h = Math.round(toCm(m[3], unit));
+  const prefix = name.slice(0, m.index).replace(/[\s/(]+$/, '').toLowerCase();
+  return prefix + '|' + w + 'x' + h;
+}
+// Printful occasionally also has two separate store listings for the exact same
+// option (a leftover duplicate sync) — collapsing on the size-aware key above
+// (rather than the raw name) catches both kinds of duplicate, so neither ever
+// shows as a repeated option in the dropdown here.
 function dedupeVariants(variants) {
   const seen = new Map();
   const out = [];
   variants.forEach((v) => {
-    const key = v.name + '|' + v.price;
+    const key = sizeDedupeKey(v.name);
     const existing = seen.get(key);
     if (existing) {
       if ((!existing.images || !existing.images.length) && v.images && v.images.length) {
