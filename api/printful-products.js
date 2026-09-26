@@ -111,6 +111,28 @@ function posterDisplayTitle(title) {
     .replace(/\s+/g, ' ')
     .trim();
 }
+// Printful occasionally has two separate store listings for the exact same option
+// (a leftover duplicate sync) — this collapses any variants that share the same
+// name AND price down to one, so a duplicate on Printful's side never shows as a
+// repeated option in the dropdown here.
+function dedupeVariants(variants) {
+  const seen = new Map();
+  const out = [];
+  variants.forEach((v) => {
+    const key = v.name + '|' + v.price;
+    const existing = seen.get(key);
+    if (existing) {
+      if ((!existing.images || !existing.images.length) && v.images && v.images.length) {
+        existing.images = v.images;
+        existing.image = existing.image || v.image;
+      }
+      return;
+    }
+    seen.set(key, v);
+    out.push(v);
+  });
+  return out;
+}
 function mergePosterGroups(list) {
   const groups = new Map();
   const merged = [];
@@ -120,7 +142,7 @@ function mergePosterGroups(list) {
     const style = posterStyle(p.title);
     const taggedVariants = p.variants.map((v) => {
       const rest = v.name.split(' / ').slice(1).join(' / ');
-      return Object.assign({}, v, { name: rest ? style + ' / ' + rest : style });
+      return Object.assign({}, v, { name: rest ? style + ' / ' + rest : style, _style: style });
     });
     let g = groups.get(key);
     if (!g) {
@@ -135,6 +157,31 @@ function mergePosterGroups(list) {
     if (!p._careParts) return; // a non-poster product, passed through untouched
     p.care = p._careParts.join('\n\n');
     delete p._careParts;
+    // Unframed first (so it's always the default photo + default dropdown pick),
+    // then framed — and drop any exact duplicate option along the way.
+    p.variants = dedupeVariants(p.variants).sort((a, b) => (a._style === b._style ? 0 : a._style === 'Unframed' ? -1 : 1));
+    // Build one shared photo strip: first one representative shot per frame colour
+    // that actually exists for this design (Black / Oak / White — skipped entirely
+    // if that colour isn't one of this design's options), then every other distinct
+    // mockup photo Printful has, so it's all browsable via the thumbnails first,
+    // before ever touching the dropdown. Capped at 12 so it never gets huge.
+    const FRAME_COLOR_ORDER = ['Black', 'Oak', 'White'];
+    const colorShot = {};
+    p.variants.forEach((v) => {
+      const m = /^Framed \/ (\w+)/.exec(v.name);
+      if (m && v.image && !colorShot[m[1]]) colorShot[m[1]] = v.image;
+    });
+    const frameShots = FRAME_COLOR_ORDER.filter((c) => colorShot[c]).map((c) => colorShot[c]);
+    Object.keys(colorShot).forEach((c) => { if (FRAME_COLOR_ORDER.indexOf(c) === -1) frameShots.push(colorShot[c]); });
+    const seenUrls = new Set(frameShots);
+    const mockups = [];
+    p.variants.forEach((v) => {
+      const imgs = (v.images && v.images.length) ? v.images : (v.image ? [v.image] : []);
+      imgs.forEach((url) => { if (url && !seenUrls.has(url)) { seenUrls.add(url); mockups.push(url); } });
+    });
+    const strip = frameShots.concat(mockups).slice(0, 12);
+    if (p.variants[0]) { p.variants[0].images = strip; p.thumb = p.variants[0].image || p.thumb; }
+    p.variants.forEach((v) => { delete v._style; });
     const symMatch = (p.variants[0] && p.variants[0].label.match(/^[^\d\-]+/)) || ['€'];
     const min = Math.min(...p.variants.map((v) => v.price));
     p.price = (p.variants.length > 1 ? 'From ' : '') + symMatch[0] + min.toFixed(2);
