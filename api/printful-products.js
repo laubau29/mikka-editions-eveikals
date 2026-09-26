@@ -75,6 +75,74 @@ async function catalogSizeChart(productId) {
   return chart;
 }
 
+// Printful sells "framed" and "unframed" versions of the same poster design as two
+// separate store products (that's how their dashboard organises things), so without
+// this they'd show up as two separate cards everywhere on the site. Customers just
+// think "this poster", so this merges every framed/unframed pair of the SAME design
+// (matched by name, ignoring the frame/paper wording) into one product with one
+// dropdown offering every size AND frame option together — and it applies wherever
+// PRODUCTS is used (shop grid, edition pages, product page), because the merge
+// happens here, before the front end ever sees the separate listings.
+function posterGroupKey(title) {
+  return title
+    .replace(/\bposters?\b/ig, ' ')
+    .replace(/\bno\s*frame\b/ig, ' ')
+    .replace(/\bframed?\b/ig, ' ')
+    .replace(/\benhanced\b/ig, ' ')
+    .replace(/\bmatte\b/ig, ' ')
+    .replace(/\bpaper\b/ig, ' ')
+    .replace(/[-–]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+function posterStyle(title) {
+  return /framed/i.test(title) ? 'Framed' : 'Unframed';
+}
+function posterDisplayTitle(title) {
+  return title
+    .replace(/\bposters?\b/ig, 'Poster')
+    .replace(/\bno\s*frame\b/ig, ' ')
+    .replace(/\bframed?\b/ig, ' ')
+    .replace(/\benhanced\b/ig, ' ')
+    .replace(/\bmatte\b/ig, ' ')
+    .replace(/\bpaper\b/ig, ' ')
+    .replace(/[-–]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+function mergePosterGroups(list) {
+  const groups = new Map();
+  const merged = [];
+  for (const p of list) {
+    if (p.dept !== 'prints') { merged.push(p); continue; }
+    const key = posterGroupKey(p.title);
+    const style = posterStyle(p.title);
+    const taggedVariants = p.variants.map((v) => {
+      const rest = v.name.split(' / ').slice(1).join(' / ');
+      return Object.assign({}, v, { name: rest ? style + ' / ' + rest : style });
+    });
+    let g = groups.get(key);
+    if (!g) {
+      g = Object.assign({}, p, { title: posterDisplayTitle(p.title), variants: [], _careParts: [] });
+      groups.set(key, g);
+      merged.push(g);
+    }
+    g.variants = g.variants.concat(taggedVariants);
+    if (p.care && g._careParts.indexOf(p.care) === -1) g._careParts.push(p.care);
+  }
+  merged.forEach((p) => {
+    if (!p._careParts) return; // a non-poster product, passed through untouched
+    p.care = p._careParts.join('\n\n');
+    delete p._careParts;
+    const symMatch = (p.variants[0] && p.variants[0].label.match(/^[^\d\-]+/)) || ['€'];
+    const min = Math.min(...p.variants.map((v) => v.price));
+    p.price = (p.variants.length > 1 ? 'From ' : '') + symMatch[0] + min.toFixed(2);
+    p.desc = 'Produced to order and shipped by our print partner — framed or unframed, in several sizes. Prefer to print it yourself? Choose the digital option instead.';
+  });
+  return merged;
+}
+
 module.exports = async (req, res) => {
   if (!TOKEN) return res.status(500).json({ error: 'Token missing: add PRINTFUL_API_TOKEN in Vercel and redeploy' });
   try {
@@ -116,7 +184,7 @@ module.exports = async (req, res) => {
     }
     if (!out.length) throw new Error('No products returned (' + list.length + ' listed)');
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=86400');
-    res.status(200).json(out);
+    res.status(200).json(mergePosterGroups(out));
   } catch (e) {
     res.setHeader('Cache-Control', 'no-store');
     res.status(502).json({ error: String(e.message || e) });
