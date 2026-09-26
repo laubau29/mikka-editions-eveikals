@@ -86,9 +86,6 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
 .card .frame{aspect-ratio:1/1;background:var(--paper);border:1px solid rgba(37,38,34,.12);border-radius:6px;padding:18px;box-sizing:border-box;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
 .card .frame img{width:100%;height:100%;object-fit:contain}
 .card:hover .frame{border-color:rgba(37,38,34,.3);box-shadow:0 14px 28px rgba(37,38,34,.10);transform:translateY(-3px)}
-.card .frame.cutout{background:transparent;border:none;padding:0;box-shadow:none}
-.card:hover .frame.cutout{border:none;box-shadow:none}
-.card .frame.cutout img{object-fit:contain;padding:8px}
 .card .card-title{font-family:var(--serif);font-weight:400;font-size:16px;margin:14px 0 3px}
 .meta{font-size:12px;color:var(--fjord);margin:0}
 .tag{display:inline-block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
@@ -656,7 +653,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   if(panel)panel.innerHTML=formatBlock(p,fmt);
   bindVariantSelect();
  };
- function card(p,lvl){var t=lvl||'h3';var isCutout=!!GARMENT_CUTOUTS[p.title];var frameClass=isCutout?'frame cutout':'frame';return '<a class="card" href="?p=product/'+p.id+'"><div class="'+frameClass+'">'+pic(p)+'</div><'+t+' class="card-title">'+p.title+'</'+t+'><p class="meta">'+p.price+' · '+p.kind+(p.digital?' + digital available':'')+'</p></a>';}
+ function card(p,lvl){var t=lvl||'h3';return '<a class="card" href="?p=product/'+p.id+'"><div class="frame">'+pic(p)+'</div><'+t+' class="card-title">'+p.title+'</'+t+'><p class="meta">'+p.price+' · '+p.kind+(p.digital?' + digital available':'')+'</p></a>';}
  function grid(list,lvl){return list.length?'<div class="grid">'+list.map(function(p){return card(p,lvl);}).join('')+'</div>':'<p class="empty">No products in this section yet — new editions are added here as they are released.</p>';}
  function byDept(d){return PRODUCTS.filter(function(p){return p.dept===d;});}
  function byEdition(e){return PRODUCTS.filter(function(p){return p.editions.indexOf(e)>-1;});}
