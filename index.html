@@ -81,10 +81,12 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
   padding-top:22px;border-top:1px solid rgba(37,38,34,.18);font-size:12px;color:var(--fjord)}
 
 /* Catalogue */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px 24px;margin:26px 0 10px}
-.card{text-decoration:none;color:inherit}
-.card .frame{aspect-ratio:1/1}
-.card .card-title{font-family:var(--serif);font-weight:400;font-size:16px;margin:12px 0 3px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:36px 24px;margin:26px 0 10px}
+.card{text-decoration:none;color:inherit;display:block}
+.card .frame{aspect-ratio:1/1;background:var(--paper);border:1px solid rgba(37,38,34,.12);border-radius:6px;padding:18px;box-sizing:border-box;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+.card .frame img{width:100%;height:100%;object-fit:contain}
+.card:hover .frame{border-color:rgba(37,38,34,.3);box-shadow:0 14px 28px rgba(37,38,34,.10);transform:translateY(-3px)}
+.card .card-title{font-family:var(--serif);font-weight:400;font-size:16px;margin:14px 0 3px}
 .meta{font-size:12px;color:var(--fjord);margin:0}
 .tag{display:inline-block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;
   border:1px solid var(--fjord);color:var(--fjord);padding:3px 8px;margin-right:6px}
@@ -119,7 +121,7 @@ footer{border-top:1px solid rgba(37,38,34,.18);padding:52px 0 64px;font-size:14p
   .mark span{font-size:11px}
   .navlink{font-size:13px}
   header .icons svg{width:23px;height:23px}
-  .page p,.page li{font-size:17px}
+  .page>p:not(.crumb),.page li{font-size:17px}
   .page h3,.page h2{font-size:21px}
 }
 @media(max-width:820px){
@@ -389,6 +391,21 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     =================================================================== */
  var EXTRA_POSTER_PHOTOS={
  };
+ /* ===================================================================
+    GARMENT CUTOUTS — for t-shirts/hoodies only. Printful's shirt photos
+    are shot on a plain studio background; AI background removal works
+    reliably on garments (the fabric shape is easy to isolate), so for
+    any shirt you've had processed into a transparent PNG and uploaded
+    to this repo, list it here and the grid thumbnail will use the
+    clean cutout instead of Printful's flat photo.
+    Key = the product's title exactly as it shows on the live site.
+    Value = the transparent PNG's filename, uploaded same way as
+    EXTRA_POSTER_PHOTOS above.
+    Example:
+    'Unisex t-shirt Animal People White dogs': 'tshirt-animal-people-white-dogs-cutout.png',
+    =================================================================== */
+ var GARMENT_CUTOUTS={
+ };
  /* Every card, sticker or poster is, by your own rule, also sold as a digital download of
     the same design — so instead of listing each one by hand, build a sensible default:
     roughly 60% of the physical price (never under €1), generic ZIP contents. Departments
@@ -435,7 +452,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   if(motif==='road') return '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><rect width="100" height="100" fill="'+c[0]+'"/><circle cx="78" cy="18" r="10" fill="#C99D39"/><path d="M62 24c2-2 4-2 5 0M68 20c2-2 4-2 5 0" stroke="#252622" stroke-width="1" fill="none"/><polygon points="0,66 30,46 58,68" fill="#4A5C63"/><polygon points="10,80 50,44 95,80" fill="'+c[1]+'"/><polygon points="47,100 53,100 51,78 49,78" fill="#F2E9D8"/><rect x="66" y="78" width="1.6" height="16" fill="#252622"/><polygon points="67.6,80 78,80 81,83 78,86 67.6,86" fill="#C99D39"/></svg>';
   return '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"><rect width="100" height="100" fill="'+c[0]+'"/><circle cx="42" cy="44" r="24" fill="'+c[1]+'"/><path d="M60 78c-8-4-8-18-1-26 8-8 22-6 24 3 2 10-6 22-15 25-3 1-6 0-8-2z" fill="#252622" opacity=".85"/></svg>';}
  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
- function pic(p){return p.thumb?'<img src="'+p.thumb+'" alt="'+p.title+'" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">':art(p.art,0,p.motif);}
+ function pic(p){return p.thumb?'<img src="'+p.thumb+'" alt="'+p.title+'" loading="lazy" decoding="async">':art(p.art,0,p.motif);}
  /* ---- Product photo gallery + zoom ----
     A product can carry several photos two ways:
     - p.images: ['url1','url2',...]  → shown when no variant is picked yet
@@ -703,6 +720,8 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS[p.title])p.digital=DIGITAL_TWINS[p.title];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
     var extra=EXTRA_POSTER_PHOTOS[p.title];
     if(extra&&extra.length&&p.variants&&p.variants[0]){p.variants[0].images=(p.variants[0].images||[]).concat(extra);}
+    var cutout=GARMENT_CUTOUTS[p.title];
+    if(cutout)p.thumb=cutout;
    });
    PRODUCTS=PRODUCTS.filter(function(p){return p.kind!=='Physical';}).concat(list); /* live items replace the demo physical ones */
    loaded=true;failed=false;render();
