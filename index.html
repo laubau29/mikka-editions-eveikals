@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -148,13 +147,24 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 .size-guide-text{flex:1 1 220px;min-width:200px;font-size:13.5px}
 .size-guide-text p{margin:0 0 10px}
 @media(max-width:560px){.size-guide{justify-content:center;text-align:left}.size-guide svg{margin:0 auto}}
-.size-guide-toggle{margin:10px 0 4px;border:1px solid rgba(37,38,34,.25);border-radius:4px;padding:0}
-.size-guide-toggle summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;font-size:14px;color:var(--ink);display:flex;align-items:center;justify-content:space-between}
-.size-guide-toggle summary::-webkit-details-marker{display:none}
-.size-guide-toggle summary::after{content:'+';font-size:18px;line-height:1;color:var(--brick)}
-.size-guide-toggle[open] summary::after{content:'\2212'}
-.size-guide-toggle[open] summary{border-bottom:1px solid rgba(37,38,34,.18)}
-.size-guide-toggle .size-guide{padding:14px}
+/* Generic collapsed dropdown used for the wordy stuff on a product page — fabric
+   / paper details, care instructions, the size chart — one per product, closed
+   by default so the page reads short and minimal until someone wants the detail. */
+.dropdown{margin:10px 0 4px;border:1px solid rgba(37,38,34,.25);border-radius:4px;padding:0}
+.dropdown summary{cursor:pointer;list-style:none;padding:12px 14px;font-weight:700;font-size:14px;color:var(--ink);display:flex;align-items:center;justify-content:space-between}
+.dropdown summary::-webkit-details-marker{display:none}
+.dropdown summary::after{content:'+';font-size:18px;line-height:1;color:var(--brick)}
+.dropdown[open] summary::after{content:'\2212'}
+.dropdown[open] summary{border-bottom:1px solid rgba(37,38,34,.18)}
+.dropdown-body{padding:14px}
+/* The digital-download call-out: the one thing that should NOT be hidden away,
+   so it gets its own high-contrast, slightly playful button instead of blending
+   into the paragraph text around it. */
+.digital-callout{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:14px 0;padding:13px 16px;border:none;border-radius:6px;background:var(--brick);color:var(--paper);font:inherit;font-size:14px;line-height:1.35;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
+.digital-callout:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(174,76,53,.35)}
+.digital-callout:active{transform:translateY(0)}
+.digital-callout .dc-icon{font-size:18px;flex:0 0 auto}
+.digital-callout strong{text-decoration:underline;text-underline-offset:2px}
 
 /* Product gallery + zoom */
 .gallery{display:flex;flex-direction:column;gap:10px}
@@ -479,8 +489,18 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   var intro=isGarment
    ?'Size chart and fabric details are below. Produced to order and shipped separately from any downloads in the same basket.'
    :'Produced to order on quality stock and shipped separately from any downloads in the same basket.';
-  var digitalNote=(p.digital&&!isGarment)?'<p style="font-size:13px;opacity:.8">Prefer to print it yourself? <a href="javascript:void(0)" onclick="var b=document.querySelector(\'.fmt-btn[data-fmt=digital]\');if(b)b.click();">Switch to the digital version</a> above.</p>':'';
-  return '<h3>'+heading+'</h3><p>'+intro+'</p>'+digitalNote+(isGarment?garmentSizeGuideHTML():'')+(p.care?'<div class="care">'+p.care+'</div>':'');
+  /* The digital option is the one thing worth interrupting the page for — it can
+     save the customer money and a wait at the mailbox — so it stands on its own,
+     styled as a small call-out button, ABOVE the collapsed details dropdown below
+     it rather than buried inside it. Applies to every product that has a digital
+     twin (cards, stickers, posters — not just non-garments). */
+  var digitalNote=p.digital?('<button type="button" class="digital-callout" onclick="var b=document.querySelector(\'.fmt-btn[data-fmt=digital]\');if(b)b.click();this.closest(\'.prod\').scrollIntoView({behavior:\'smooth\',block:\'start\'});">'+
+   '<span class="dc-icon">&#9889;</span><span>No patience for the mailbox? <strong>Print it yourself</strong> — switch to the digital version above.</span></button>'):'';
+  /* Everything else (fabric/paper details, care instructions, and for garments
+     the size chart) is useful but wordy — tucked behind one collapsed dropdown
+     per product so the page stays short until someone actually wants it. */
+  var body='<p>'+intro+'</p>'+(isGarment?garmentSizeGuideHTML():'')+(p.care?'<div class="care">'+p.care+'</div>':'');
+  return digitalNote+'<details class="dropdown"><summary>'+heading+'</summary><div class="dropdown-body">'+body+'</div></details>';
  }
  /* Static, always-correct size guide for wearable garments (t-shirts, hoodies).
     Numbers are the real Printful chest/waist/hips chart (same one shown on
@@ -525,7 +545,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     '<td>'+r.waistIn+' in'+(r.waistCm?' / '+r.waistCm+' cm':'')+'</td>'+
     '<td>'+r.hipsIn+' in'+(r.hipsCm?' / '+r.hipsCm+' cm':'')+'</td></tr>';
   }).join('');
-  return '<details class="size-guide-toggle"><summary>Size chart &amp; how to measure (US &amp; EU)</summary>'+
+  return '<h4 style="margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.1em;color:var(--fjord)">Size chart &amp; how to measure (US &amp; EU)</h4>'+
    '<div class="size-guide">'+
     sizeGuideIllustrationSVG()+
     '<div class="size-guide-text">'+
@@ -537,8 +557,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
      '<tr><th>Size</th><th>Chest</th><th>Waist</th><th>Hips</th></tr>'+rows+
     '</table>'+
     '<p style="font-size:12px;opacity:.75;flex-basis:100%">6XL is only made to order in inches — Printful doesn\'t publish a centimetre size for it.</p>'+
-   '</div>'+
-  '</details>';
+   '</div>';
  }
  function formatBlock(p,fmt){
   if(fmt==='digital'&&p.digital){
