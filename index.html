@@ -463,7 +463,8 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   var intro=isGarment
    ?'Size chart and fabric details are below. Produced to order and shipped separately from any downloads in the same basket.'
    :'Produced to order on quality stock and shipped separately from any downloads in the same basket.';
-  return '<h3>'+heading+'</h3><p>'+intro+'</p>'+(isGarment?garmentSizeGuideHTML():'')+(p.care?'<div class="care">'+p.care+'</div>':'');
+  var digitalNote=(p.digital&&!isGarment)?'<p style="font-size:13px;opacity:.8">Prefer to print it yourself? <a href="javascript:void(0)" onclick="var b=document.querySelector(\'.fmt-btn[data-fmt=digital]\');if(b)b.click();">Switch to the digital version</a> above.</p>':'';
+  return '<h3>'+heading+'</h3><p>'+intro+'</p>'+digitalNote+(isGarment?garmentSizeGuideHTML():'')+(p.care?'<div class="care">'+p.care+'</div>':'');
  }
  /* Static, always-correct size guide for wearable garments (t-shirts, hoodies).
     Numbers are the real Printful chest/waist/hips chart (same one shown on
