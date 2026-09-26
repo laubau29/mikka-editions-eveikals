@@ -160,11 +160,15 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 /* The digital-download call-out: the one thing that should NOT be hidden away,
    so it gets its own high-contrast, slightly playful button instead of blending
    into the paragraph text around it. */
-.digital-callout{display:flex;align-items:center;gap:10px;width:100%;text-align:left;margin:14px 0;padding:13px 16px;border:none;border-radius:6px;background:var(--brick);color:var(--paper);font:inherit;font-size:14px;line-height:1.35;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}
-.digital-callout:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(174,76,53,.35)}
+.digital-callout{display:flex;align-items:center;gap:16px;width:100%;text-align:left;margin:14px 0;padding:14px 18px;border:1px solid rgba(37,38,34,.18);border-radius:8px;background:var(--paper);font:inherit;cursor:pointer;transition:border-color .15s ease,transform .15s ease}
+.digital-callout:hover{border-color:var(--brick);transform:translateY(-1px)}
 .digital-callout:active{transform:translateY(0)}
-.digital-callout .dc-icon{font-size:18px;flex:0 0 auto}
-.digital-callout strong{text-decoration:underline;text-underline-offset:2px}
+.digital-callout .dc-icon-svg{flex:0 0 auto}
+.digital-callout .dc-text{display:flex;flex-direction:column;gap:1px}
+.digital-callout .dc-line1{font-family:var(--sans);font-size:14.5px;color:var(--ink)}
+.digital-callout .dc-line2{font-family:var(--sans);font-size:19px;font-weight:bold;color:var(--brick);letter-spacing:-.01em}
+@keyframes dcPop{0%{transform:scale(.97);opacity:.45}60%{transform:scale(1.015)}100%{transform:scale(1);opacity:1}}
+.dc-pop{animation:dcPop .38s ease}
 
 /* Product gallery + zoom */
 .gallery{display:flex;flex-direction:column;gap:10px}
@@ -494,8 +498,18 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
      styled as a small call-out button, ABOVE the collapsed details dropdown below
      it rather than buried inside it. Applies to every product that has a digital
      twin (cards, stickers, posters — not just non-garments). */
-  var digitalNote=p.digital?('<button type="button" class="digital-callout" onclick="var b=document.querySelector(\'.fmt-btn[data-fmt=digital]\');if(b)b.click();this.closest(\'.prod\').scrollIntoView({behavior:\'smooth\',block:\'start\'});">'+
-   '<span class="dc-icon">&#9889;</span><span>No patience for the mailbox? <strong>Print it yourself</strong> — switch to the digital version above.</span></button>'):'';
+  var digitalNote=p.digital?('<button type="button" class="digital-callout" onclick="'+
+   'var b=document.querySelector(\'.fmt-btn[data-fmt=digital]\');if(b)b.click();'+
+   'var pnl=document.getElementById(\'fmtPanel\');if(pnl){pnl.classList.remove(\'dc-pop\');void pnl.offsetWidth;pnl.classList.add(\'dc-pop\');}'+
+   'this.closest(\'.prod\').scrollIntoView({behavior:\'smooth\',block:\'start\'});">'+
+   '<svg class="dc-icon-svg" viewBox="0 0 90 74" width="46" height="38" aria-hidden="true">'+
+    '<rect x="20" y="26" width="28" height="28" fill="var(--fjord)"/>'+
+    '<path d="M48 26 a12 12 0 0 1 12 12 L48 38 Z" fill="var(--brick)"/>'+
+    '<rect x="55" y="20" width="13" height="34" rx="2" fill="var(--ochre)" transform="rotate(14 61.5 37)"/>'+
+    '<circle cx="9" cy="58" r="6" fill="var(--ink)"/>'+
+   '</svg>'+
+   '<span class="dc-text"><span class="dc-line1">Prefer pixels to parcels?</span><span class="dc-line2">Print it yourself.</span></span>'+
+  '</button>'):'';
   /* Everything else (fabric/paper details, care instructions, and for garments
      the size chart) is useful but wordy — tucked behind one collapsed dropdown
      per product so the page stays short until someone actually wants it. */
