@@ -446,7 +446,9 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    price:'€'+digitalPrice.toFixed(2),
    thumb:p.thumb,
    desc:'Digital version of this design — print it yourself at home or at any print shop.',
-   contents:['One ZIP file, downloaded instantly after payment','Print-ready PDF (300 dpi) + JPG','START-HERE.txt with printing notes','Personal-use licence']
+   contents:p.dept==='prints'
+    ?['1 × high-resolution A-series JPG (A1, 300 dpi)','1 × print-ready A1 PDF','Prints beautifully at A1, A2, A3, A4 & A5','START-HERE printing guide','Personal-use licence']
+    :['One ZIP file, downloaded instantly after payment','Print-ready PDF (300 dpi) + JPG','START-HERE.txt with printing notes','Personal-use licence']
   };
  }
  var PRODUCTS=[
