@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -401,7 +402,8 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     'Poster Animal People': ['my-extra-mockup-1.jpg','my-extra-mockup-2.jpg'],
     =================================================================== */
  var EXTRA_POSTER_PHOTOS={
- 'Standard Postcard Local Editions Paris My Paris':['Mikka%20Local%20Edition%20mockup%20CARD%202.png','Mikka%20Local%20Edition%20mockup%20CARD%203.png','Mikka%20Local%20Edition%20mockup%20CARD%205.png']
+ 'Standard Postcard Local Editions Paris My Paris':['Mikka%20Local%20Edition%20mockup%20CARD%202.png','Mikka%20Local%20Edition%20mockup%20CARD%203.png','Mikka%20Local%20Edition%20mockup%20CARD%205.png'],
+ 'Poster Local Editions Paris My Paris':['Paris%20my%20Paris%20mockup%2001.png','Paris%20my%20Paris%20mockup%2001.jpg','Paris%20my%20Paris%20mockup%2002.png','Paris%20my%20Paris%20mockup%2002.jpg']
  };
  /* ===================================================================
     GARMENT CUTOUTS — for t-shirts/hoodies only. Printful's shirt photos
@@ -483,7 +485,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  }
  function thumbHTML(list,activeIdx){
   if(!list||list.length<2)return '';
-  return '<div class="thumbs">'+list.map(function(src,i){return '<button class="'+(i===activeIdx?'active':'')+'" onclick="mkSetImg('+i+')"><img src="'+src+'" alt="" loading="lazy" decoding="async"></button>';}).join('')+'</div>';
+  return '<div class="thumbs">'+list.map(function(src,i){return '<button class="'+(i===activeIdx?'active':'')+'" onclick="mkSetImg('+i+')"><img src="'+src+'" alt="" loading="lazy" decoding="async" onerror="this.parentNode.style.display=\'none\'"></button>';}).join('')+'</div>';
  }
  function galleryHTML(p,variant){
   var list=imgList(p,variant);
