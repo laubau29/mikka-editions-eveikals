@@ -41,8 +41,11 @@ async function fromShopList(req, productId) {
     if (!r.ok) return null;
     const list = await r.json();
     const p = list.find((x) => x.id === 'pf-' + productId);
-    if (!p || !p.variants || !p.variants.length) return null;
-    return { name: p.title, prices: p.variants.map((v) => Number(v.price)) };
+    if (!p) return null;
+    // use the exact price shown on the page ("From €7.50" -> 7.5) so both always agree
+    const shown = parseFloat(String(p.price).replace(/[^0-9.]/g, ''));
+    if (!shown) return null;
+    return { name: p.title, prices: [shown] };
   } catch (e) { return null; }
 }
 module.exports = async (req, res) => {
