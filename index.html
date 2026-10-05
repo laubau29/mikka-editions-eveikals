@@ -400,6 +400,19 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     Example:
     'Poster Animal People': ['my-extra-mockup-1.jpg','my-extra-mockup-2.jpg'],
     =================================================================== */
+ /* ===================================================================
+    DIGITAL FILES — what a customer receives when they buy the digital
+    download of a design. Each ZIP is uploaded ONCE in Snipcart
+    (Manage store → Digital goods); Snipcart gives it a long ID (a
+    "GUID") that looks like 3f2b8c1e-....  Paste that ID next to the
+    product's title below. Key = the product's title exactly as it shows
+    on the site. Without a line here, the digital version has no file to
+    send — so add one before you sell that digital download.
+    Example:
+    'Standard Postcard Local Editions Paris My Paris':'3f2b8c1e-0000-0000-0000-000000000000',
+    =================================================================== */
+ var DIGITAL_FILE_GUIDS={
+ };
  var EXTRA_POSTER_PHOTOS={
  'Poster Local Editions Paris My Paris':['Paris%20my%20Paris%20mockup%2001.png','Paris%20my%20Paris%20mockup%2001.jpg','Paris%20my%20Paris%20mockup%2002.png','Paris%20my%20Paris%20mockup%2002.jpg']
  };
@@ -511,7 +524,14 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   var isDigital=p.kind==='Digital download';
   var name=p.title+(isDigital?' — Digital Download':'');
   var desc=(isDigital?'Digital download. ':'')+(p.desc||p.title);
-  return 'data-item-id="'+p.id+'" data-item-name="'+esc(name)+'" data-item-price="'+priceNum(p)+'" data-item-url="/api/snipcart?id='+p.id+'" data-item-image="'+(p.thumb||'')+'" data-item-description="'+esc(desc)+'"'+(isDigital?' data-item-shippable="false"':'');
+  var guid=isDigital?digitalFileGuid(p.title):'';
+  return 'data-item-id="'+p.id+'" data-item-name="'+esc(name)+'" data-item-price="'+priceNum(p)+'" data-item-url="/api/snipcart?id='+p.id+'" data-item-image="'+(p.thumb||'')+'" data-item-description="'+esc(desc)+'"'+(isDigital?' data-item-shippable="false"':'')+(guid?' data-item-file-guid="'+guid+'"':'');
+ }
+ /* Which Snipcart-hosted ZIP a digital download delivers: see DIGITAL_FILE_GUIDS near the top. */
+ function digitalFileGuid(title){
+  var want=String(title).toLowerCase().replace(/\s+/g,' ').trim();
+  for(var k in DIGITAL_FILE_GUIDS){if(k.toLowerCase().replace(/\s+/g,' ').trim()===want)return DIGITAL_FILE_GUIDS[k];}
+  return '';
  }
  function buy(p){
   if(p.variants){
@@ -519,8 +539,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     '<p><button class="btn snipcart-add-item" id="add" '+attrs(p,p.variants[0])+'>Add to cart</button></p>';
   }
   if(p.price){
-   return '<p><button class="btn snipcart-add-item" id="add" '+attrsSimple(p)+'>Add to cart</button></p>'+
-    (p.kind==='Digital download'?'<p class="meta">The ZIP file for this design is attached to it in your Snipcart dashboard (Products → this item → Downloadable file), so it emails to the buyer automatically once payment goes through.</p>':'');
+   return '<p><button class="btn snipcart-add-item" id="add" '+attrsSimple(p)+'>Add to cart</button></p>';
   }
   return '<p><span class="soon">Coming soon</span></p>';
  }
