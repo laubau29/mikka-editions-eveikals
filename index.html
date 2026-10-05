@@ -411,6 +411,18 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     Example:
     'Standard Postcard Local Editions Paris My Paris':'3f2b8c1e-0000-0000-0000-000000000000',
     =================================================================== */
+ /* Photos to hide everywhere on the site: paste the image address here (one per line). */
+ var HIDDEN_PHOTOS=[
+'https://files.cdn.printful.com/files/534/5341354cecfda67605c98dae3e1f0067_preview.png'
+ ];
+ function hideBadPhotos(p){
+  if(!HIDDEN_PHOTOS.length||!p.variants)return;
+  p.variants.forEach(function(v){
+   if(v.images){v.images=v.images.filter(function(u){return HIDDEN_PHOTOS.indexOf(u)<0;});}
+   if(v.image&&HIDDEN_PHOTOS.indexOf(v.image)>-1){v.image=(v.images&&v.images[0])||p.thumb||'';}
+  });
+  if(HIDDEN_PHOTOS.indexOf(p.thumb)>-1){var ok=p.variants.filter(function(v){return v.image;})[0];p.thumb=ok?ok.image:'';}
+ }
  var DIGITAL_FILE_GUIDS={
 'Standard Postcard Local Editions Paris My Paris':'97326829-9e55-4a2b-872e-6abe6706b949',
 'Standard Postcard Local Editions Paris My Paris 10x15cm':'97326829-9e55-4a2b-872e-6abe6706b949',
@@ -766,6 +778,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  function load(n){
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
    list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
+    hideBadPhotos(p);
     var extra=EXTRA_POSTER_PHOTOS_N[nt];
     if(extra&&extra.length&&p.variants&&p.variants[0]){
      var v0=p.variants[0];
