@@ -17,6 +17,34 @@ const FILE_GUIDS_BY_NAME = {
   'poster local editions little elsewhere': 'dd00a812-7222-4c8d-9958-53b644ee1e99'
 };
 const norm = (s) => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+// Ask Printful, retrying a few times when it is busy or has a hiccup.
+async function pfGet(path, h) {
+  let last;
+  for (let i = 0; i < 4; i++) {
+    try {
+      const r = await fetch('https://api.printful.com' + path, { headers: h });
+      if (r.ok) return (await r.json()).result;
+      last = r.status;
+      if (r.status !== 429 && r.status < 500) return null; // a real "not found"
+    } catch (e) { last = String(e); }
+    await sleep(500 * (i + 1));
+  }
+  throw new Error('Printful ' + last);
+}
+// The shop page already caches the full product list for 10 minutes; reuse it so
+// we usually do not need to bother Printful at all.
+async function fromShopList(req, productId) {
+  try {
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const r = await fetch('https://' + host + '/api/printful-products');
+    if (!r.ok) return null;
+    const list = await r.json();
+    const p = list.find((x) => x.id === 'pf-' + productId);
+    if (!p || !p.variants || !p.variants.length) return null;
+    return { name: p.title, prices: p.variants.map((v) => Number(v.price)) };
+  } catch (e) { return null; }
+}
 module.exports = async (req, res) => {
   const raw = String(req.query.id || '');
   const m = raw.match(/^pf-(\d+)(-digital)?$/);
@@ -26,18 +54,20 @@ module.exports = async (req, res) => {
     if (process.env.PRINTFUL_STORE_ID) h['X-PF-Store-Id'] = process.env.PRINTFUL_STORE_ID;
     res.setHeader('Cache-Control', 'no-store');
     if (!m[2]) {
-      const r = await fetch('https://api.printful.com/store/variants/' + m[1], { headers: h });
-      if (!r.ok) return res.status(404).json({ error: 'not found' });
-      const v = (await r.json()).result.sync_variant;
+      const result = await pfGet('/store/variants/' + m[1], h);
+      if (!result) return res.status(404).json({ error: 'not found' });
+      const v = result.sync_variant;
       return res.status(200).json({ id: 'pf-' + v.id, price: Number(v.retail_price), url: req.url });
     }
-    const r = await fetch('https://api.printful.com/store/products/' + m[1], { headers: h });
-    if (!r.ok) return res.status(404).json({ error: 'not found' });
-    const d = (await r.json()).result;
-    const prices = d.sync_variants.filter((v) => !v.is_ignored).map((v) => Number(v.retail_price));
-    if (!prices.length) return res.status(404).json({ error: 'not found' });
-    const key = norm(d.sync_product.name);
-    const price = DIGITAL_PRICE_OVERRIDES[key] || Math.max(1, Math.round(Math.min(...prices) * 0.6 * 2) / 2);
+    let info = await fromShopList(req, m[1]);
+    if (!info) {
+      const d = await pfGet('/store/products/' + m[1], h);
+      if (!d) return res.status(404).json({ error: 'not found' });
+      info = { name: d.sync_product.name, prices: d.sync_variants.filter((v) => !v.is_ignored).map((v) => Number(v.retail_price)) };
+    }
+    if (!info.prices.length) return res.status(404).json({ error: 'not found' });
+    const key = norm(info.name);
+    const price = DIGITAL_PRICE_OVERRIDES[key] || Math.max(1, Math.round(Math.min(...info.prices) * 0.6 * 2) / 2);
     const out = { id: raw, price, url: req.url, shippable: false };
     let g = FILE_GUIDS['pf-' + m[1]];
     if (!g) { const k = Object.keys(FILE_GUIDS_BY_NAME).find((n) => key === n || key.startsWith(n + ' ')); if (k) g = FILE_GUIDS_BY_NAME[k]; }
