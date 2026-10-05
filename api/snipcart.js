@@ -10,6 +10,11 @@ const FILE_GUIDS = {
   'pf-475425346': '6155fc46-07d1-427a-bd70-2ea3bc0bdbeb', // Poster Local Editions Paris My Paris
   'pf-475424872': '97326829-9e55-4a2b-872e-6abe6706b949'  // Standard Postcard Local Editions Paris My Paris
 };
+// Same codes, matched by product name (start of the name) for products whose id is not listed above.
+const FILE_GUIDS_BY_NAME = {
+  'poster little elsewhere': 'dd00a812-7222-4c8d-9958-53b644ee1e99',
+  'poster local editions little elsewhere': 'dd00a812-7222-4c8d-9958-53b644ee1e99'
+};
 const norm = (s) => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
 module.exports = async (req, res) => {
   const raw = String(req.query.id || '');
@@ -33,7 +38,8 @@ module.exports = async (req, res) => {
     const key = norm(d.sync_product.name);
     const price = DIGITAL_PRICE_OVERRIDES[key] || Math.max(1, Math.round(Math.min(...prices) * 0.6 * 2) / 2);
     const out = { id: raw, price, url: req.url, shippable: false };
-    const g = FILE_GUIDS['pf-' + m[1]];
+    let g = FILE_GUIDS['pf-' + m[1]];
+    if (!g) { const k = Object.keys(FILE_GUIDS_BY_NAME).find((n) => key === n || key.startsWith(n + ' ')); if (k) g = FILE_GUIDS_BY_NAME[k]; }
     if (g) out.fileGuid = g;
     return res.status(200).json(out);
   } catch (e) { res.status(502).json({ error: 'upstream' }); }
