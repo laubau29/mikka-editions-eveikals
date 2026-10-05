@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
     if (eventName !== 'order.completed') return res.status(200).end();
 
     // 3) Keep Printful items only (digital items etc. are ignored here)
-    const items = (o.items || []).filter((i) => String(i.id).startsWith('pf-'))
+    const items = (o.items || []).filter((i) => /^pf-\d+$/.test(String(i.id)))
       .map((i) => ({ sync_variant_id: Number(String(i.id).slice(3)), quantity: i.quantity }));
     if (!items.length) return res.status(200).end();
 
