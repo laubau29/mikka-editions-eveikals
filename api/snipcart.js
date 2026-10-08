@@ -13,8 +13,8 @@ const FILE_GUIDS = {
 };
 // Same codes, matched by product name (start of the name) for products whose id is not listed above.
 const FILE_GUIDS_BY_NAME = {
-  'poster little elsewhere': '11abb3aa-c4c4-43b6-b917-9afee4e10ed0',
-  'poster local editions little elsewhere': '11abb3aa-c4c4-43b6-b917-9afee4e10ed0'
+  'poster little elsewhere': '704bb20d-e411-4aa0-88e7-f92d3776cc63',
+  'poster local editions little elsewhere': '704bb20d-e411-4aa0-88e7-f92d3776cc63'
 };
 const norm = (s) => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
