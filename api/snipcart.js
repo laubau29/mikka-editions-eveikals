@@ -9,7 +9,7 @@ const DIGITAL_PRICE_OVERRIDES = { 'standard postcard fog season cards': 1.5 }; /
 const FILE_GUIDS = {
   'pf-475425346': '6155fc46-07d1-427a-bd70-2ea3bc0bdbeb', // Poster Local Editions Paris My Paris
   'pf-475215332': 'c68bea6c-a4a7-401a-8cb7-f666b22e44e7', // Standard Postcard Little Elsewhere Cards Somewhere
-  'pf-475424872': '97326829-9e55-4a2b-872e-6abe6706b949'  // Standard Postcard Local Editions Paris My Paris
+  'pf-475424872': '542cbb91-ff4a-475c-bfb4-60a907c13460'  // Standard Postcard Local Editions Paris My Paris
 };
 // Same codes, matched by product name (start of the name) for products whose id is not listed above.
 const FILE_GUIDS_BY_NAME = {
