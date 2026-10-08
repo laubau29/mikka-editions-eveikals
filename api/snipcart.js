@@ -7,7 +7,7 @@ const DIGITAL_PRICE_OVERRIDES = { 'standard postcard fog season cards': 1.5 }; /
 // Snipcart compares the digital file code in the cart with this answer, so they must match.
 // Keep in sync with DIGITAL_FILE_GUIDS in index.html (keyed here by Printful product id).
 const FILE_GUIDS = {
-  'pf-475425346': '6155fc46-07d1-427a-bd70-2ea3bc0bdbeb', // Poster Local Editions Paris My Paris
+  'pf-475425346': '17841d69-fe40-4ebd-ac77-680d69fd622c', // Poster Local Editions Paris My Paris
   'pf-475215332': 'c68bea6c-a4a7-401a-8cb7-f666b22e44e7', // Standard Postcard Little Elsewhere Cards Somewhere
   'pf-475424872': '542cbb91-ff4a-475c-bfb4-60a907c13460'  // Standard Postcard Local Editions Paris My Paris
 };
