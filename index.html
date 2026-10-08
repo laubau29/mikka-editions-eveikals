@@ -431,9 +431,14 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  function putColourFirst(p){
   if(p.dept!=='t-shirts'||!p.variants||p.variants.length<2)return;
   var want=(FIRST_COLOUR_N[normTitle(p.title)]||'white').toLowerCase();
-  function parts(v){return String(v.name).split(' / ').map(function(x){return x.trim().toLowerCase();});}
-  var match=p.variants.filter(function(v){return parts(v).indexOf(want)>-1;});
-  if(!match.length)match=p.variants.filter(function(v){return parts(v).some(function(x){return x.indexOf(want)===0;});});
+  var title=String(p.title).toLowerCase();
+  /* Printful writes variant names in different styles ("Title / White / S" or "Title (White / S)"),
+     and a design can have the colour word in its own title ("Animal People White dogs"), so
+     take the title out first and then look for the colour word on its own. */
+  function bits(v){return String(v.name).toLowerCase().split(title).join(' ').split(/[\/()|,]/).map(function(x){return x.trim();}).filter(Boolean);}
+  var re=new RegExp('\\b'+want.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b');
+  var match=p.variants.filter(function(v){return bits(v).indexOf(want)>-1;});
+  if(!match.length)match=p.variants.filter(function(v){return bits(v).some(function(x){return re.test(x)&&!/off.?white/.test(x);});});
   if(!match.length)return;
   var rest=p.variants.filter(function(v){return match.indexOf(v)<0;});
   p.variants=match.concat(rest);
