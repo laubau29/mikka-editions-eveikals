@@ -422,21 +422,20 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  ];
  /* A T-shirt in several colours: every colour's own Printful photo is shown in the
     gallery (the picked colour first), not only the photo of the first colour. */
- /* Which colour should open first for a T-shirt (default is Printful's own order). */
+ /* Every T-shirt opens on its WHITE version first (main picture, shop-page picture and the
+    pre-selected colour). Add a line below only if one shirt should open on another colour. */
  var FIRST_COLOUR={
- 'Unisex t-shirt Home is Where The Cat is 01':'White'
+ /* 'Some t-shirt title':'Ash' */
  };
  var FIRST_COLOUR_N=normalizedLookup(FIRST_COLOUR);
  function putColourFirst(p){
-  var want=FIRST_COLOUR_N[normTitle(p.title)];
-  if(!want||!p.variants||p.variants.length<2)return;
-  want=want.toLowerCase();
-  var match=[],rest=[];
-  p.variants.forEach(function(v){
-   var hit=String(v.name).split(' / ').some(function(part){return part.trim().toLowerCase()===want;});
-   (hit?match:rest).push(v);
-  });
+  if(p.dept!=='t-shirts'||!p.variants||p.variants.length<2)return;
+  var want=(FIRST_COLOUR_N[normTitle(p.title)]||'white').toLowerCase();
+  function parts(v){return String(v.name).split(' / ').map(function(x){return x.trim().toLowerCase();});}
+  var match=p.variants.filter(function(v){return parts(v).indexOf(want)>-1;});
+  if(!match.length)match=p.variants.filter(function(v){return parts(v).some(function(x){return x.indexOf(want)===0;});});
   if(!match.length)return;
+  var rest=p.variants.filter(function(v){return match.indexOf(v)<0;});
   p.variants=match.concat(rest);
   var img=match[0].image||(match[0].images&&match[0].images[0]);
   if(img)p.thumb=img;
@@ -472,6 +471,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 'Poster Local Editions Paris My Paris':'6155fc46-07d1-427a-bd70-2ea3bc0bdbeb'
  };
  var EXTRA_POSTER_PHOTOS={
+'Unisex t-shirt Home is Where The Dog is 01':['media/home-is-where-the-dog-is-tshirt-model-1.jpg'],
 'Unisex t-shirt Home is Where The Cat is 01':['media/home-is-where-the-cat-is-tshirt-model-1.jpg'],
 'Unisex t-shirt Fog Season T-shirts':['media/fog-season-tshirt-video.mp4'],
 'Poster Little Elsewhere':['Poster%20Little%20Elsewhere.png'],
