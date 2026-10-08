@@ -420,6 +420,22 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  var HIDDEN_PHOTOS=[
 'https://files.cdn.printful.com/files/534/5341354cecfda67605c98dae3e1f0067_preview.png'
  ];
+ /* A T-shirt in several colours: every colour's own Printful photo is shown in the
+    gallery (the picked colour first), not only the photo of the first colour. */
+ function showAllColours(p){
+  if(p.dept!=='t-shirts'||!p.variants||p.variants.length<2)return;
+  var reps=[];
+  p.variants.forEach(function(v){
+   var first=(v.images&&v.images[0])||v.image;
+   if(first&&reps.indexOf(first)<0)reps.push(first);
+  });
+  if(reps.length<2)return;
+  p.variants.forEach(function(v){
+   var own=(v.images&&v.images.length)?v.images.slice():(v.image?[v.image]:[]);
+   reps.forEach(function(r){if(own.indexOf(r)<0)own.push(r);});
+   v.images=own;
+  });
+ }
  function hideBadPhotos(p){
   if(!HIDDEN_PHOTOS.length||!p.variants)return;
   p.variants.forEach(function(v){
@@ -796,6 +812,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
    list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
     hideBadPhotos(p);
+    showAllColours(p);
     var extra=EXTRA_POSTER_PHOTOS_N[nt];
     if(extra&&extra.length&&p.variants&&p.variants.length){
      p.variants.forEach(function(v0){
