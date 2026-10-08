@@ -16,6 +16,7 @@ const FILE_GUIDS_BY_NAME = {
   'poster little elsewhere': '704bb20d-e411-4aa0-88e7-f92d3776cc63',
   'poster local editions little elsewhere': '704bb20d-e411-4aa0-88e7-f92d3776cc63',
   'poster find me among the pines': '12c765ae-8501-4c3d-8c75-31729835de49',
+  'standard postcard animal people': 'b612f184-efcc-4222-98a5-b81b78057c4d',
   'poster fog season find me among the pines': '12c765ae-8501-4c3d-8c75-31729835de49'
 };
 const norm = (s) => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
