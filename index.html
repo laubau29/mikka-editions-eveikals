@@ -203,7 +203,12 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 .thumbs button{width:56px;height:56px;padding:0;border:2px solid transparent;background:none;
   cursor:pointer;overflow:hidden;flex-shrink:0}
 .thumbs button.active{border-color:var(--brick)}
-.thumbs img,.thumbs svg{width:100%;height:100%;object-fit:cover}
+.thumbs img,.thumbs svg,.thumbs video{width:100%;height:100%;object-fit:cover;display:block}
+.thumbs button{position:relative}
+.thumbs .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;text-shadow:0 1px 4px rgba(0,0,0,.6);pointer-events:none}
+.gallery .frame video{width:100%;height:100%;object-fit:contain;display:block;background:#fff}
+.gallery .frame.isvideo{cursor:default}
+.gallery .frame.isvideo:after{display:none}
 .lightbox{position:fixed;inset:0;background:rgba(37,38,34,.94);display:none;
   align-items:center;justify-content:center;z-index:200;padding:24px;
   padding-top:calc(24px + env(safe-area-inset-top,0px))}
@@ -432,6 +437,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
 'Poster Local Editions Paris My Paris':'6155fc46-07d1-427a-bd70-2ea3bc0bdbeb'
  };
  var EXTRA_POSTER_PHOTOS={
+'Unisex t-shirt Fog Season T-shirts':['media/fog-season-tshirt-model-1.jpg','media/fog-season-tshirt-model-2.jpg','media/fog-season-tshirt-model-3.jpg','media/fog-season-tshirt-video.mp4','media/fog-season-tshirt-front.png'],
 'Poster Little Elsewhere':['Poster%20Little%20Elsewhere.png'],
 'Poster Local Editions Little Elsewhere':['Poster%20Little%20Elsewhere.png'],
  'Poster Local Editions Paris My Paris':['Paris%20my%20Paris%20mockup%2001.png','Paris%20my%20Paris%20mockup%2001.jpg','Paris%20my%20Paris%20mockup%2002.png','Paris%20my%20Paris%20mockup%2002.jpg']
@@ -516,24 +522,30 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
   if(p.thumb)return [p.thumb];
   return null;
  }
+ function isVid(src){return /\.(mp4|webm|mov)(\?|#|$)/i.test(String(src||''));}
+ function mediaTag(src,alt,eager){
+  if(isVid(src))return '<video id="mainImg" src="'+src+'" muted loop playsinline autoplay controls preload="metadata"></video>';
+  return '<img id="mainImg" src="'+src+'" alt="'+alt+'"'+(eager?' fetchpriority="high"':'')+' decoding="async">';
+ }
  function thumbHTML(list,activeIdx){
   if(!list||list.length<2)return '';
-  return '<div class="thumbs">'+list.map(function(src,i){return '<button class="'+(i===activeIdx?'active':'')+'" onclick="mkSetImg('+i+')"><img src="'+src+'" alt="" loading="lazy" decoding="async" onerror="this.parentNode.style.display=\'none\'"></button>';}).join('')+'</div>';
+  return '<div class="thumbs">'+list.map(function(src,i){return '<button class="'+(i===activeIdx?'active':'')+'" onclick="mkSetImg('+i+')">'+(isVid(src)?'<video src="'+src+'#t=0.5" muted playsinline preload="metadata"></video><span class="play">&#9654;</span>':'<img src="'+src+'" alt="" loading="lazy" decoding="async" onerror="this.parentNode.style.display=\'none\'">')+'</button>';}).join('')+'</div>';
  }
  function galleryHTML(p,variant){
   var list=imgList(p,variant);
   window.__mkImages=list;
   var fallback=art(p.art,0,p.motif);
-  var main=list?'<img id="mainImg" src="'+list[0]+'" alt="'+esc(p.title)+'" fetchpriority="high" decoding="async">':fallback;
-  return '<div class="gallery"><div class="frame" onclick="mkOpenZoom()">'+main+'</div>'+thumbHTML(list,0)+'</div>';
+  var main=list?mediaTag(list[0],esc(p.title),true):fallback;
+  return '<div class="gallery"><div class="frame'+(list&&isVid(list[0])?' isvideo':'')+'" onclick="mkOpenZoom()">'+main+'</div>'+thumbHTML(list,0)+'</div>';
  }
  window.mkSetImg=function(i){
   var list=window.__mkImages;if(!list)return;
-  var img=document.getElementById('mainImg');if(img)img.src=list[i];
+  var fr=document.querySelector('.gallery .frame');
+  if(fr){fr.innerHTML=mediaTag(list[i],'',false);fr.classList.toggle('isvideo',isVid(list[i]));}
   document.querySelectorAll('.thumbs button').forEach(function(b,idx){b.classList.toggle('active',idx===i);});
  };
  window.mkOpenZoom=function(){
-  var img=document.getElementById('mainImg');if(!img)return;
+  var img=document.getElementById('mainImg');if(!img||img.tagName==='VIDEO')return;
   document.getElementById('lightboxImg').src=img.src;
   document.getElementById('lightbox').classList.add('open');
  };
@@ -685,7 +697,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    b.setAttribute('data-item-url','/api/snipcart?id=pf-'+v.id);if(v.image)b.setAttribute('data-item-image',v.image);
    var list=imgList(p,v);window.__mkImages=list;
    var frame=document.querySelector('.gallery .frame');
-   if(frame)frame.innerHTML=list?'<img id="mainImg" src="'+list[0]+'" alt="'+esc(p.title)+'">':art(p.art,0,p.motif);
+   if(frame){frame.innerHTML=list?mediaTag(list[0],esc(p.title),false):art(p.art,0,p.motif);frame.classList.toggle('isvideo',!!(list&&isVid(list[0])));}
    var thumbsWrap=document.querySelector('.gallery .thumbs'), newThumbs=thumbHTML(list,0);
    if(thumbsWrap&&newThumbs)thumbsWrap.outerHTML=newThumbs;
    else if(thumbsWrap)thumbsWrap.remove();
@@ -785,10 +797,11 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
    list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
     hideBadPhotos(p);
     var extra=EXTRA_POSTER_PHOTOS_N[nt];
-    if(extra&&extra.length&&p.variants&&p.variants[0]){
-     var v0=p.variants[0];
-     var base=(v0.images&&v0.images.length)?v0.images:(v0.image?[v0.image]:(p.thumb?[p.thumb]:[]));
-     v0.images=base.concat(extra);
+    if(extra&&extra.length&&p.variants&&p.variants.length){
+     p.variants.forEach(function(v0){
+      var base=(v0.images&&v0.images.length)?v0.images:(v0.image?[v0.image]:(p.thumb?[p.thumb]:[]));
+      v0.images=base.concat(extra);
+     });
     }
     var cutout=GARMENT_CUTOUTS_N[nt];
     if(cutout)p.thumb=cutout;
