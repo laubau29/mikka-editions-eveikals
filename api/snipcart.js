@@ -12,12 +12,14 @@ const FILE_GUIDS = {
   'pf-475424872': '542cbb91-ff4a-475c-bfb4-60a907c13460', // Standard Postcard Local Editions Paris My Paris
   'pf-486439325': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb'  // Standard Postcard The Sun Little Elsewhere (Printful: Sun&Tree)
 };
-// Same codes, matched by product name (start of the name) for products whose id is not listed above.
+// Same codes, matched by the product's exact name for products whose id is not listed above.
 const FILE_GUIDS_BY_NAME = {
   'poster little elsewhere': '704bb20d-e411-4aa0-88e7-f92d3776cc63',
   'poster local editions little elsewhere': '704bb20d-e411-4aa0-88e7-f92d3776cc63',
   'poster find me among the pines': '12c765ae-8501-4c3d-8c75-31729835de49',
   'standard postcard find me among the pines': '6386554b-1e3c-417c-9155-5f85301014d9',
+  'standard postcard find me among the pines fog season': '6386554b-1e3c-417c-9155-5f85301014d9',
+  'poster find me among the pines fog season': '12c765ae-8501-4c3d-8c75-31729835de49',
   'standard postcard fog season find me among the pines': '6386554b-1e3c-417c-9155-5f85301014d9',
   'standard postcard animal people': 'b612f184-efcc-4222-98a5-b81b78057c4d',
   'standard postcard sun&tree little elsewhere': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb',
@@ -81,7 +83,7 @@ module.exports = async (req, res) => {
     const price = DIGITAL_PRICE_OVERRIDES[key] || Math.max(1, Math.round(Math.min(...info.prices) * 0.6 * 2) / 2);
     const out = { id: raw, price, url: req.url, shippable: false };
     let g = FILE_GUIDS['pf-' + m[1]];
-    if (!g) { const k = Object.keys(FILE_GUIDS_BY_NAME).find((n) => key === n || key.startsWith(n + ' ')); if (k) g = FILE_GUIDS_BY_NAME[k]; }
+    if (!g) g = FILE_GUIDS_BY_NAME[key]; // exact name only, same as the shop page
     // No ZIP linked = nothing to deliver, so Snipcart must not accept a digital purchase.
     if (!g) return res.status(404).json({ error: 'no digital file' });
     out.fileGuid = g;
