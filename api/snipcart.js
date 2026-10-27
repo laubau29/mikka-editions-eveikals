@@ -10,7 +10,7 @@ const FILE_GUIDS = {
   'pf-475425346': '17841d69-fe40-4ebd-ac77-680d69fd622c', // Poster Local Editions Paris My Paris
   'pf-475215332': 'c68bea6c-a4a7-401a-8cb7-f666b22e44e7', // Standard Postcard Little Elsewhere Cards Somewhere
   'pf-475424872': '542cbb91-ff4a-475c-bfb4-60a907c13460', // Standard Postcard Local Editions Paris My Paris
-  'pf-486439325': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb'  // Standard Postcard Sun&Tree Little Elsewhere
+  'pf-486439325': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb'  // Standard Postcard The Sun Little Elsewhere (Printful: Sun&Tree)
 };
 // Same codes, matched by product name (start of the name) for products whose id is not listed above.
 const FILE_GUIDS_BY_NAME = {
@@ -21,6 +21,7 @@ const FILE_GUIDS_BY_NAME = {
   'standard postcard fog season find me among the pines': '6386554b-1e3c-417c-9155-5f85301014d9',
   'standard postcard animal people': 'b612f184-efcc-4222-98a5-b81b78057c4d',
   'standard postcard sun&tree little elsewhere': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb',
+  'standard postcard the sun little elsewhere': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb',
   'poster fog season find me among the pines': '12c765ae-8501-4c3d-8c75-31729835de49'
 };
 const norm = (s) => String(s).toLowerCase().replace(/\s+/g, ' ').trim();

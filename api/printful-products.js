@@ -96,6 +96,10 @@ function posterGroupKey(title) {
     .trim()
     .toLowerCase();
 }
+// Products shown on the site under a different name than in Printful (key = Printful product id).
+const NAME_OVERRIDES = {
+  '486439325': 'Standard Postcard The Sun Little Elsewhere' // Printful: "Standard Postcard Sun&Tree Little Elsewhere"
+};
 function posterStyle(title) {
   return /framed/i.test(title) ? 'Framed' : 'Unframed';
 }
@@ -242,7 +246,7 @@ module.exports = async (req, res) => {
       const care = await catalogDescription(catalogId); // material, fit, care instructions, straight from Printful
       const sizeChart = isGarment ? await catalogSizeChart(catalogId) : null; // only fetched for wearables
       out.push({
-        id: 'pf-' + sp.id, title: sp.name, dept: productDept, editions: [], kind: 'Physical',
+        id: 'pf-' + sp.id, title: NAME_OVERRIDES[sp.id] || sp.name, dept: productDept, editions: [], kind: 'Physical',
         price: (vs.length > 1 ? 'From ' : '') + money(min, cur),
         thumb: sp.thumbnail_url, art: ['#58717A', '#252622'],
         desc: 'Produced to order and shipped by our print partner.',
