@@ -96,11 +96,6 @@ function posterGroupKey(title) {
     .trim()
     .toLowerCase();
 }
-// Names to show differently on the site than they are written in Printful.
-// "Sun&Tree" designs are called "The Sun".
-function siteName(name) {
-  return String(name).replace(/\bSun\s*&\s*Tree\b/ig, 'The Sun').replace(/\bThe\s+The Sun\b/ig, 'The Sun');
-}
 function posterStyle(title) {
   return /framed/i.test(title) ? 'Framed' : 'Unframed';
 }
@@ -247,7 +242,7 @@ module.exports = async (req, res) => {
       const care = await catalogDescription(catalogId); // material, fit, care instructions, straight from Printful
       const sizeChart = isGarment ? await catalogSizeChart(catalogId) : null; // only fetched for wearables
       out.push({
-        id: 'pf-' + sp.id, title: siteName(sp.name), dept: productDept, editions: [], kind: 'Physical',
+        id: 'pf-' + sp.id, title: sp.name, dept: productDept, editions: [], kind: 'Physical',
         price: (vs.length > 1 ? 'From ' : '') + money(min, cur),
         thumb: sp.thumbnail_url, art: ['#58717A', '#252622'],
         desc: 'Produced to order and shipped by our print partner.',
