@@ -222,7 +222,7 @@ function mergePosterGroups(list) {
     const symMatch = (p.variants[0] && p.variants[0].label.match(/^[^\d\-]+/)) || ['€'];
     const min = Math.min(...p.variants.map((v) => v.price));
     p.price = (p.variants.length > 1 ? 'From ' : '') + symMatch[0] + min.toFixed(2);
-    p.desc = 'Produced to order and shipped by our print partner — framed or unframed, in several sizes. Prefer to print it yourself? Choose the digital option instead.';
+    p.desc = 'Produced to order and shipped by our print partner — framed or unframed, in several sizes.'; // the digital banner appears by itself when a ZIP exists
   });
   return merged;
 }
