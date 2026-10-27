@@ -411,8 +411,8 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     (Manage store → Digital goods); Snipcart gives it a long ID (a
     "GUID") that looks like 3f2b8c1e-....  Paste that ID next to the
     product's title below. Key = the product's title exactly as it shows
-    on the site. Without a line here, the digital version has no file to
-    send — so add one before you sell that digital download.
+    on the site. Without a line here, the product shows NO digital option
+    at all — add the line when the ZIP is ready and the option appears.
     Example:
     'Standard Postcard Local Editions Paris My Paris':'3f2b8c1e-0000-0000-0000-000000000000',
     =================================================================== */
@@ -520,11 +520,8 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     that can't sensibly be a home-printed download (t-shirts, bundles, art-assets) are left
     untouched — only add a department here if it should ALSO get an automatic digital twin. */
  var AUTO_DIGITAL_DEPTS=['cards','stickers','prints'];
- /* Products that must NOT offer a digital download yet (no ZIP uploaded in Snipcart).
-    Key = the product id from its page address (?p=product/pf-...). Remove the line once its ZIP is linked. */
- var NO_DIGITAL=[
-  'pf-486395382' // Poster Sun&Tree Little Elsewhere
- ];
+ /* A digital download is only offered when its ZIP is linked in DIGITAL_FILE_GUIDS.
+    No ZIP = no Digital option on the page, so nobody can buy a download that doesn't exist. */
  function autoDigitalTwin(p){
   var physical=parseFloat(String(p.price).replace(/[^0-9.]/g,''))||0;
   var digitalPrice=Math.max(1,Math.round(physical*0.6*2)/2); // round to nearest €0.50
@@ -623,8 +620,9 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  }
  /* Which Snipcart-hosted ZIP a digital download delivers: see DIGITAL_FILE_GUIDS near the top. */
  function digitalFileGuid(title){
-  var want=String(title).toLowerCase().replace(/\s+/g,' ').trim();
-  for(var k in DIGITAL_FILE_GUIDS){if(k.toLowerCase().replace(/\s+/g,' ').trim()===want)return DIGITAL_FILE_GUIDS[k];}
+  function n(t){return String(t).replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/&quot;/g,'"').toLowerCase().replace(/\s+/g,' ').trim();}
+  var want=n(title);
+  for(var k in DIGITAL_FILE_GUIDS){if(n(k)===want)return DIGITAL_FILE_GUIDS[k];}
   return '';
  }
  function buy(p){
@@ -854,7 +852,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  var DIGITAL_TWINS_N=normalizedLookup(DIGITAL_TWINS);
  function load(n){
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
-   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1&&NO_DIGITAL.indexOf(p.id)<0)p.digital=autoDigitalTwin(p);
+   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(digitalFileGuid(p.title)){if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);}
     hideBadPhotos(p);
     putColourFirst(p);
     showAllColours(p);
