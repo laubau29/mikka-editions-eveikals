@@ -8,6 +8,8 @@ const DIGITAL_PRICE_OVERRIDES = { 'standard postcard fog season cards': 1.5 }; /
 // Keep in sync with DIGITAL_FILE_GUIDS in index.html (keyed here by Printful product id).
 const FILE_GUIDS = {
   'pf-475425346': '17841d69-fe40-4ebd-ac77-680d69fd622c', // Poster Local Editions Paris My Paris
+  'pf-478315606': '17841d69-fe40-4ebd-ac77-680d69fd622c', // Poster Local Editions Paris My Paris (other listing of the same poster)
+  'pf-479399404': 'b612f184-efcc-4222-98a5-b81b78057c4d', // Standard Postcard White Dogs
   'pf-475215332': 'c68bea6c-a4a7-401a-8cb7-f666b22e44e7', // Standard Postcard Little Elsewhere Cards Somewhere
   'pf-475424872': '542cbb91-ff4a-475c-bfb4-60a907c13460', // Standard Postcard Local Editions Paris My Paris
   'pf-486439325': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb'  // Standard Postcard The Sun Little Elsewhere (Printful: Sun&Tree)
@@ -22,6 +24,8 @@ const FILE_GUIDS_BY_NAME = {
   'poster find me among the pines fog season': '12c765ae-8501-4c3d-8c75-31729835de49',
   'standard postcard fog season find me among the pines': '6386554b-1e3c-417c-9155-5f85301014d9',
   'standard postcard animal people': 'b612f184-efcc-4222-98a5-b81b78057c4d',
+  'standard postcard white dogs': 'b612f184-efcc-4222-98a5-b81b78057c4d',
+  'poster local editions paris my paris': '17841d69-fe40-4ebd-ac77-680d69fd622c',
   'standard postcard sun&tree little elsewhere': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb',
   'standard postcard the sun little elsewhere': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb',
   'poster fog season find me among the pines': '12c765ae-8501-4c3d-8c75-31729835de49'
