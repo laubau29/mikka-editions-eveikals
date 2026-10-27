@@ -98,10 +98,19 @@ function posterGroupKey(title) {
 }
 // Products shown on the site under a different name than in Printful (key = Printful product id).
 const NAME_OVERRIDES = {
-  '486439325': 'Standard Postcard The Sun Little Elsewhere' // Printful: "Standard Postcard Sun&Tree Little Elsewhere"
+  '486439325': 'Standard Postcard The Sun Little Elsewhere', // Printful: "Standard Postcard Sun&Tree Little Elsewhere"
+  '486446840': 'Poster Sun&Tree Little Elsewhere' // Printful has a typo: "Elswhere" — fixed here so it merges with its framed twin
 };
-function posterStyle(title) {
-  return /framed/i.test(title) ? 'Framed' : 'Unframed';
+// Framed or not, decided per option: Printful's own product type for that option
+// (e.g. "Enhanced Matte Paper Framed Poster"), or a frame colour in the option name
+// (Black / Oak / White ...) — not only the word "framed" in your product title,
+// which many of your listings don't have.
+const FRAME_COLOURS = /(^|\/|\(|\s)(black|white|oak|natural|walnut|red oak)(\s*\/|\s*\)|\s*$)/i;
+function variantStyle(productTitle, v) {
+  if (v._catalogName && /framed/i.test(v._catalogName)) return 'Framed';
+  if (/framed/i.test(productTitle)) return 'Framed';
+  if (FRAME_COLOURS.test(String(v.name).replace(productTitle, ' '))) return 'Framed';
+  return 'Unframed';
 }
 function posterDisplayTitle(title) {
   return title
@@ -158,10 +167,11 @@ function mergePosterGroups(list) {
   const groups = new Map();
   const merged = [];
   for (const p of list) {
-    if (p.dept !== 'prints') { merged.push(p); continue; }
+    if (p.dept !== 'prints') { p.variants.forEach((v) => { delete v._catalogName; }); merged.push(p); continue; }
     const key = posterGroupKey(p.title);
-    const style = posterStyle(p.title);
     const taggedVariants = p.variants.map((v) => {
+      const style = variantStyle(p.title, v);
+      delete v._catalogName;
       const rest = v.name.split(' / ').slice(1).join(' / ');
       return Object.assign({}, v, { name: rest ? style + ' / ' + rest : style, _style: style });
     });
@@ -233,6 +243,7 @@ module.exports = async (req, res) => {
         const images = variantImages(v);
         return {
           id: v.id, name: v.name, price: Number(v.retail_price), label: money(v.retail_price, v.currency),
+          _catalogName: (v.product && v.product.name) || '',
           image: images[0] || (v.product && v.product.image) || sp.thumbnail_url,
           images: images.length ? images : undefined, // multiple photos → gallery + zoom on the product page
         };
