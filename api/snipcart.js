@@ -24,6 +24,8 @@ const FILE_GUIDS_BY_NAME = {
   'standard postcard the sun little elsewhere': 'f9e1f5ad-c4a7-4402-af70-d8865e0fa8fb',
   'poster fog season find me among the pines': '12c765ae-8501-4c3d-8c75-31729835de49'
 };
+// No digital download for these yet (keep in sync with NO_DIGITAL in index.html).
+const NO_DIGITAL = ['pf-486395382']; // Poster Sun&Tree Little Elsewhere
 const norm = (s) => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 // Ask Printful, retrying a few times when it is busy or has a hiccup.
@@ -60,6 +62,7 @@ module.exports = async (req, res) => {
   const raw = String(req.query.id || '');
   const m = raw.match(/^pf-(\d+)(-digital)?$/);
   if (!m) return res.status(404).json({ error: 'not found' });
+  if (m[2] && NO_DIGITAL.includes('pf-' + m[1])) return res.status(404).json({ error: 'not found' });
   try {
     const h = { Authorization: 'Bearer ' + TOKEN };
     if (process.env.PRINTFUL_STORE_ID) h['X-PF-Store-Id'] = process.env.PRINTFUL_STORE_ID;

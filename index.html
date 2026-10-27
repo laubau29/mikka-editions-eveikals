@@ -520,6 +520,11 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
     that can't sensibly be a home-printed download (t-shirts, bundles, art-assets) are left
     untouched — only add a department here if it should ALSO get an automatic digital twin. */
  var AUTO_DIGITAL_DEPTS=['cards','stickers','prints'];
+ /* Products that must NOT offer a digital download yet (no ZIP uploaded in Snipcart).
+    Key = the product id from its page address (?p=product/pf-...). Remove the line once its ZIP is linked. */
+ var NO_DIGITAL=[
+  'pf-486395382' // Poster Sun&Tree Little Elsewhere
+ ];
  function autoDigitalTwin(p){
   var physical=parseFloat(String(p.price).replace(/[^0-9.]/g,''))||0;
   var digitalPrice=Math.max(1,Math.round(physical*0.6*2)/2); // round to nearest €0.50
@@ -849,7 +854,7 @@ select.variant{display:block;width:100%;max-width:340px;padding:12px;margin:0 0 
  var DIGITAL_TWINS_N=normalizedLookup(DIGITAL_TWINS);
  function load(n){
   fetch('/api/printful-products').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(list){
-   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1)p.digital=autoDigitalTwin(p);
+   list.forEach(function(p){p.title=esc(p.title);var t=p.title.toLowerCase();var nt=normTitle(p.title);p.editions=(EDITION_MAP[p.id]||[]).concat(Object.keys(ED).filter(function(k){return t.indexOf(ED[k][0].toLowerCase())>-1||(EDITION_WORDS[k]||[]).some(function(w){return wordRe(w).test(t);});}));if(DIGITAL_TWINS_N[nt])p.digital=DIGITAL_TWINS_N[nt];else if(AUTO_DIGITAL_DEPTS.indexOf(p.dept)>-1&&NO_DIGITAL.indexOf(p.id)<0)p.digital=autoDigitalTwin(p);
     hideBadPhotos(p);
     putColourFirst(p);
     showAllColours(p);
